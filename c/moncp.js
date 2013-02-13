@@ -389,7 +389,8 @@ var updateVarExtrema = function() {
 // This function updates ShipDataSet.varMin, and then causes all the ship data
 // points to be recolored based on the new min value.
 //
-// It currently does not update the current min value for the selected variable,// so if you change which ship data variable is being displayed and come back, 
+// It currently does not update the current min value for the selected variable,
+// so if you change which ship data variable is being displayed and come back, 
 // the min value will have reverted to the actual min among that variable's
 // values in the database for the selected time period.
 //
@@ -404,7 +405,8 @@ var updateVarMin = function(e) {
 // This function updates ShipDataSet.varMax, and then causes all the ship data
 // points to be recolored based on the new max value.
 //
-// It currently does not update the current max value for the selected variable,// so if you change which ship data variable is being displayed and come back, 
+// It currently does not update the current max value for the selected variable,
+// so if you change which ship data variable is being displayed and come back, 
 // the max value will have reverted to the actual max among that variable's
 // values in the database for the selected time period.
 //
@@ -511,7 +513,7 @@ var addMap = function() {
   $("#mapGroupBox").append("<div class = 'centeredElt' id = 'liveMap'></div>");
 
   var plateCaree = new OpenLayers.Projection("EPSG:4326"); 
-  sphericalMercator = new OpenLayers.Projection("EPSG:3857"); 
+  var sphericalMercator = new OpenLayers.Projection("EPSG:3857"); 
 
   var options = {
       projection: plateCaree,
@@ -867,36 +869,14 @@ var addMapSizeControl = function() {
 
 ////////////////////////////////////////////////////////////////////////////////
 //
+// Assumes that this.options[this.selectedIndex].text is of the form
+// "<width> X <height>" where <width> and <height> are integers.
+//
 ////////////////////////////////////////////////////////////////////////////////
 var selectMapSize = function() {
-  var height;
-  var width;
-
-  switch (this.selectedIndex) {
-    case 0:
-      width = 600;
-      height = 300;
-      break;
-    case 1:
-      width = 800;
-      height = 400;
-      break;
-    case 2:
-      width = 900;
-      height = 450;
-      break;
-    case 3:
-      width = 1000;
-      height = 500;
-      break;
-    case 4:
-      width = 1200;
-      height = 600;
-      break;
-    default:
-      alert("selectMapSize: invalid selection");
-      return;
-  }
+  var substrings = this.options[this.selectedIndex].text.split(" ", 3);
+  var width = parseInt(substrings[0]);
+  var height = parseInt(substrings[2]);
 
   $("#liveMap").css({"width": width});
   $("#liveMap").css({"height": height});
