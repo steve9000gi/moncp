@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html> <head>
+<title>Steve's RESTful Interface Tester</title>
+<script type="text/javascript" src="/var/www/html/moncp/c/jquery-1.8.2.js"></script>
+<script src="rest-test.js"></script>
+</head>
+
+<body>
+<h3>Steve's RESTful Interface Tester (and AJAX call demo)</h3>
+<!--
+<form>
+  <div>Operation: <input type=text></div>
+-->
+
+<form id="restform">
+<select id="methodselect" name=method>
+  <option value="GET">GET</option>
+  <option value="POST">POST</option>
+</select>
+<label>RESTful URL:<input type=text id=rest_url></label><br>
+<h3>Parameters</h3>
+<div id="params">
+<div>Name: <input class='pname' type=text value='o2ar'> Value: <input class='pval' type=text></div>
+<div>Name: <input class='pname' type=text value='ncp'> Value: <input class='pval' type=text></div>
+<div>Name: <input class='pname' type=text value='salinity'> Value: <input class='pval' type=text></div>
+<div>Name: <input class='pname' type=text value='temperature'> Value: <input class='pval' type=text></div>
+<div>Name: <input class='pname' type=text value='pressure'> Value: <input class='pval' type=text></div>
+<div>Name: <input class='pname' type=text value='shipID'> Value: <input class='pval' type=text></div>
+<div>Name: <input class='pname' type=text value='dateTime'> Value: <input class='pval' type=text></div>
+<div>Name: <input class='pname' type=text value='lon'> Value: <input class='pval' type=text></div>
+<div>Name: <input class='pname' type=text value='lat'> Value: <input class='pval' type=text></div>
+</div>
+<button type=submit>Go</button>
+<button id="clearbutton" type=button>Clear Parameters</button>
+</form>
+
+<div id="results">
+  <div>Return Status: <span id="returnstatus"></span></div>
+  <div>Return Text:
+    <div id="returntext"></div>
+  </div>
+</div>
+
+</body> </html>
