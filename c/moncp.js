@@ -151,7 +151,7 @@ var setMaxDay = function(year, month, daySliderSelector) {
       maxDay = 29;
     }
   } else if ((month == 4) || (month == 6) || (month == 9) || (month == 11)) {
-    maxDay = 30;
+    maxDay = 30; // 30 days hath September, April, June and November...
   }
 
   $(daySliderSelector).slider("option", "max", maxDay);
@@ -564,6 +564,46 @@ var getPointColor = function(feature) {
 ////////////////////////////////////////////////////////////////////////////////
 //
 ////////////////////////////////////////////////////////////////////////////////
+var displayDataPointPopup = function(feature) {
+  var i = feature.attributes["dataIndex"];
+  var popup = new OpenLayers.Popup.FramedCloud(
+      "",
+      feature.geometry.getBounds().getCenterLonLat(),
+      new OpenLayers.Size(100,100),
+      "<div>#" + ShipDataSet.all[i].id + ". "
+      + ShipDataSet.variableTypes[ShipDataSet.numIx]
+      + ": " +
+      + ShipDataSet.all[i][ShipDataSet.varIx]
+      + ShipDataSet.units[ShipDataSet.numIx]
+      + "<br>" + ShipDataSet.all[i]["year"]
+      + "/" + pad(ShipDataSet.all[i]["month"], 2)
+      + "/" + pad(ShipDataSet.all[i]["day"], 2)
+      + ": Cruise #" + ShipDataSet.all[i].ship
+      + "<br>" + ShipDataSet.all[i]["lat"] + "&deg;"
+      + ", " + ShipDataSet.all[i]["lon"] + "&deg;"
+      + "</div>",
+      null,
+      true,
+      null
+  );
+
+  feature.popup = popup;
+  ShipDataSet.map.addPopup(popup);
+  return true;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+////////////////////////////////////////////////////////////////////////////////
+var removeDataPointPopup = function(feature) {
+  ShipDataSet.map.removePopup(feature.popup);
+  feature.popup.destroy();
+  feature.popup = null;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+////////////////////////////////////////////////////////////////////////////////
 var addCancelDisplayDialog = function() {
   $("#mapGroupBox").append("<div class = 'dlog' id = 'cancelDisplayDlog'"
       + "title = 'Possibly too much data requested'><p><span class='ui-icon "
@@ -619,10 +659,10 @@ var cancelDisplayDialog = function(nPoints) {
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// See http://openlayers.org/dev/examples/stylemap.html.
+// Based on http://openlayers.org/dev/examples/stylemap.html.
 //
-// Preconditions: * The timeline slider has been instantiated and has a value.
-//                * The Ship color map functionailty has all been instantiated.
+// Preconditions: * The timeline sliders have been instantiated and have values.
+//                * The Ship color map functionality has all been instantiated.
 //
 ////////////////////////////////////////////////////////////////////////////////
 function addShipDataPoints(map, projection) {
@@ -656,39 +696,13 @@ function addShipDataPoints(map, projection) {
       OpenLayers.Layer.Vector.prototype.renderers;
 
   var context = {
-//      getColor: getPointColor(feature),
- /**/   getColor: function(feature) {
-      var i = feature.attributes["dataIndex"];
-
-      // Value too big? color it white:
-      if (ShipDataSet.all[i][ShipDataSet.varIx] > ShipDataSet.varMax) {
-        return "rgb(255, 255, 255)";
-      }
-
-      // Too small? make it black:
-      if  (ShipDataSet.all[i][ShipDataSet.varIx] < ShipDataSet.varMin) {
-        return "rgb(0, 0, 0)";
-      }
-
-      var rgb = getColorFromLinearValue(
-          ShipDataSet.varMin,
-          ShipDataSet.varMax,
-          ShipDataSet.all[i][ShipDataSet.varIx]
-      );
-      var r =  parseInt(rgb[0]);
-      var g =  parseInt(rgb[1]);
-      var b =  parseInt(rgb[2]);
-      return "rgb(" + r + ", " + g + ", " + b + ")";
-    },
-/**/
-    getSize: function(feature) {
-      return 3;
-    }
+    getColor: getPointColor,
+    getSize: 3
   };
 
   var template = {
-    pointRadius: "${getSize}", // using context.getSize(feature)
-    fillColor: "${getColor}",  // using context.getColor(feature)
+    pointRadius: "${getSize}", 
+    fillColor: "${getColor}", 
     strokeColor: "${getColor}"
   };
 
@@ -697,11 +711,10 @@ function addShipDataPoints(map, projection) {
   var dataStyles = new OpenLayers.StyleMap({
       "default": defaultStyle,
       "select": new OpenLayers.Style({
-	  //fillColor: "#66ccff",
-	  //strokeColor: "#3399ff",
 	  strokeColor: "#ffffff",
 	  fillColor: "#000000",
-	  graphicZIndex: 2
+	  graphicZIndex: 2,
+          pointRadius: 6
       })
   });
 
@@ -720,38 +733,8 @@ function addShipDataPoints(map, projection) {
   var select = new OpenLayers.Control.SelectFeature(
       points,
       { hover: true,
-	onBeforeSelect: function(feature) {
-	  var i = feature.attributes["dataIndex"];
-	  var popup = new OpenLayers.Popup.FramedCloud(
-	      "",
-	      feature.geometry.getBounds().getCenterLonLat(),
-	      new OpenLayers.Size(100,100),
-	      "<div>#" + ShipDataSet.all[i].id + ". " 
-	      + ShipDataSet.variableTypes[ShipDataSet.numIx]
-	      + ": " + 
-	      + ShipDataSet.all[i][ShipDataSet.varIx]
-	      + ShipDataSet.units[ShipDataSet.numIx] 
-              + "<br>" + ShipDataSet.all[i]["year"]
-              + "/" + pad(ShipDataSet.all[i]["month"], 2)
-              + "/" + pad(ShipDataSet.all[i]["day"], 2)
-              + ": Cruise #" + ShipDataSet.all[i].ship
-              + "<br>" + ShipDataSet.all[i]["lat"] + "&deg;"
-              + ", " + ShipDataSet.all[i]["lon"] + "&deg;"
-	      + "</div>",
-	      null,
-	      true,
-	      null
-	  );
-
-	  feature.popup = popup;
-	  map.addPopup(popup);
-	  return true;
-	},
-	onUnselect: function(feature) {
-	  map.removePopup(feature.popup);
-	  feature.popup.destroy();
-	  feature.popup = null;
-	}
+	onBeforeSelect: displayDataPointPopup,
+	onUnselect: removeDataPointPopup,
       }
   );
 
@@ -760,9 +743,6 @@ function addShipDataPoints(map, projection) {
   ShipDataSet.selectControl = select;
 
   map.setCenter(new OpenLayers.LonLat(0, 0), 1);
-
-  //computeMinMaxValues();
-  //updateShipDataColorMapInfo();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -877,7 +857,6 @@ var selectMapSize = function() {
   var substrings = this.options[this.selectedIndex].text.split(" ", 3);
   var width = parseInt(substrings[0]);
   var height = parseInt(substrings[2]);
-
   $("#liveMap").css({"width": width});
   $("#liveMap").css({"height": height});
   $("#mapZoneCtrlTable").css({"width": width})
