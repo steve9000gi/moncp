@@ -44,24 +44,24 @@ $(document).ready(function() {
 //
 ////////////////////////////////////////////////////////////////////////////////
 var setupEventHandlers = function() {
-  $("#shipDropdown").on("change", selectShipDataVariable);
-  $("#satelliteDropdown").on("change", selectSatelliteDataVariable);
+  $("#shipDropdown").on("change", onSelectShipDataVariable);
+  $("#satelliteDropdown").on("change", onSelectSatelliteDataVariable);
   $("#newShipDataButton").on("click", openNewShipData);
   $("#shipColorMapMin").on("change", updateVarMin);
   $("#shipColorMapMax").on("change", updateVarMax);
   $("#getShipDataButton").on("click", getShipData);
-  $("#mapSzCtrl").on("change", selectMapSize);
+  $("#mapSzCtrl").on("change", onSelectMapSize);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Event handler for Ship Data popup: set the variable to be displayed according
-// to the menu item selected.
+// Event handler for Ship Data dropdown: set the variable to be displayed
+// according to the menu item selected.
 // 
 // varMIn and varMax are used to colormap the variable values appropriately.
 //
 ////////////////////////////////////////////////////////////////////////////////
-var selectShipDataVariable = function(e) {
+var onSelectShipDataVariable = function(e) {
   switch (this.selectedIndex) {
     case 0: 
       ShipDataSet.varIx = "o2ar";
@@ -94,7 +94,7 @@ var selectShipDataVariable = function(e) {
       ShipDataSet.varMax = ShipDataSet.neto2Max;
       break;
     default: 
-      alert("selectShipDataVariable: invalid index.");
+      alert("onSelectShipDataVariable: invalid index.");
       return;
   }
   
@@ -116,11 +116,11 @@ var selectShipDataVariable = function(e) {
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Event handler for Satellite Data popup: set the variable to be displayed
+// Event handler for Satellite Data dropdown: set the variable to be displayed
 // according to the menu item selected.
 //
 ////////////////////////////////////////////////////////////////////////////////
-var selectSatelliteDataVariable = function(e) {
+var onSelectSatelliteDataVariable = function(e) {
   alert("Satellite data: not implemented for "
       + SatelliteDataSet.minVarTypes[this.selectedIndex] + ".");
 }
@@ -167,34 +167,45 @@ var setMaxDay = function(year, month, daySliderSelector) {
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Event handler for startYear slider
+// On user selection of Start Year, set the Start Day slider's max value 
+// appropriately for the current Start Year and Month.
+//
 //
 ////////////////////////////////////////////////////////////////////////////////
-var selectStartYear = function(e, ui) {
+var onSelectStartYear = function(e, ui) {
   ShipDataSet.startDay = setMaxDay(ShipDataSet.startYear,
       $("#startMonthSlider").slider("value"), "#startDaySlider");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //
+// On user selection of End Year, set the End Day slider's max value
+// appropriately for the current End Year and Month.
+//
 ////////////////////////////////////////////////////////////////////////////////
-var selectEndYear = function(e, ui) {
+var onSelectEndYear = function(e, ui) {
   ShipDataSet.endDay = setMaxDay(ShipDataSet.endYear,
       $("#endMonthSlider").slider("value"), "#endDaySlider");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //
+// On user selection of Start Month, set the Start Day slider's max value
+// appropriately for the current Start Year and Month.
+//
 ////////////////////////////////////////////////////////////////////////////////
-var selectStartMonth = function(e, ui) {
+var onSelectStartMonth = function(e, ui) {
   ShipDataSet.startDay = setMaxDay(ShipDataSet.startYear,
       $(this).slider("value"), "#startDaySlider");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //
+// On user selection of End Month, set the End Day slider's max value
+// according to the current End Year and Month.
+//
 ////////////////////////////////////////////////////////////////////////////////
-var selectEndMonth = function(e, ui) {
+var onSelectEndMonth = function(e, ui) {
   ShipDataSet.endDay = setMaxDay(ShipDataSet.endYear, $(this).slider("value"),
       "#endDaySlider");
 }
@@ -202,13 +213,13 @@ var selectEndMonth = function(e, ui) {
 ////////////////////////////////////////////////////////////////////////////////
 //
 ////////////////////////////////////////////////////////////////////////////////
-var selectStartDay = function(e, ui) {
+var onSelectStartDay = function(e, ui) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //
 ////////////////////////////////////////////////////////////////////////////////
-var selectEndDay = function(e, ui) {
+var onSelectEndDay = function(e, ui) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -853,7 +864,7 @@ var addMapSizeControl = function() {
 // "<width> X <height>" where <width> and <height> are integers.
 //
 ////////////////////////////////////////////////////////////////////////////////
-var selectMapSize = function() {
+var onSelectMapSize = function() {
   var substrings = this.options[this.selectedIndex].text.split(" ", 3);
   var width = parseInt(substrings[0]);
   var height = parseInt(substrings[2]);
@@ -928,7 +939,7 @@ var addTimelineSliderTable = function() {
               value: ShipDataSet.startYear, 
               create: displayStartYearSliderValue,
               slide: applyStartYearSliderValue,
-              change: selectStartYear
+              change: onSelectStartYear
           });
       
       $("#yearRow").append("<td id = 'endYear'");
@@ -943,7 +954,7 @@ var addTimelineSliderTable = function() {
               value: ShipDataSet.endYear, 
               create: displayEndYearSliderValue,
               slide: applyEndYearSliderValue,
-              change: selectEndYear
+              change: onSelectEndYear
           });
 
     //Month:
@@ -961,7 +972,7 @@ var addTimelineSliderTable = function() {
               value: ShipDataSet.startMonth, 
               create: displayStartMonthSliderValue,
               slide: applyStartMonthSliderValue,
-              change: selectStartMonth
+              change: onSelectStartMonth
           });
 
       $("#monthRow").append("<td id = 'endMonth'");
@@ -976,7 +987,7 @@ var addTimelineSliderTable = function() {
               value: ShipDataSet.endMonth, 
               create: displayEndMonthSliderValue,
               slide: applyEndMonthSliderValue,
-              change: selectEndMonth
+              change: onSelectEndMonth
           });
 
       // Button:
@@ -998,7 +1009,7 @@ var addTimelineSliderTable = function() {
               value: ShipDataSet.startDay, 
               create: displayStartDaySliderValue,
               slide: applyStartDaySliderValue,
-              change: selectStartDay
+              change: onSelectStartDay
           });
       
       $("#dayRow").append("<td id = 'endDay'");
@@ -1013,7 +1024,7 @@ var addTimelineSliderTable = function() {
               value: ShipDataSet.endDay, 
               create: displayEndDaySliderValue,
               slide: applyEndDaySliderValue,
-              change: selectEndDay
+              change: onSelectEndDay
           });
 
     $("#timeTable").append("</tbody>");
