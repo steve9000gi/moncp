@@ -11,15 +11,13 @@
  * climate."
  * 
  * Web application author:
- * 
- * Steve Chall, Renaissance Computing Institute: stevec@renci.org
+ *   Steve Chall, Renaissance Computing Institute: stevec@renci.org
  * 
  ******************************************************************************
  */
 
 #versionID {
   background: #eaeaea; 
-  width: 20em;
   border-style: ridge;
   border-width: 3px;
   border-color: #cad7e0;
@@ -29,7 +27,7 @@
 }
 
 #versionRow {
-  top: 40px;
+  top: 30px;
   position: absolute;
   line-height: 10px;
   height: 10px;
@@ -82,16 +80,16 @@ body {
 }
 
 #mapGroupBox {
-  width: 900px;
+  width: 809px;
 }
 
 #liveMap {
-  width: 900px;
-  height: 450px; 
+  width: 809px;
+  height: 450px;
 }
 
 #mapZoneCtrlTable {
-  width: 900px; 
+  width: 809px;
 }
 
 #mzctElt3 {
@@ -142,10 +140,9 @@ input {
 }
 
 .slider {
-  width: 75px !important;
+  width: 60px;
   margin-left: 10px;
   margin-right: 10px;
-  width: 150px;
   height: 12px;
 }
 

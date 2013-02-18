@@ -117,4 +117,4 @@ ShipDataSet.selectedIndex = 0;
 ShipDataSet.selectControl;
 ShipDataSet.layerSwitcher;
 ShipDataSet.shipData;
-ShipDataSet.developmentVersion = 191;
+ShipDataSet.developmentVersion = 194;

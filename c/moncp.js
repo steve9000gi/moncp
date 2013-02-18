@@ -12,8 +12,7 @@
 //  climate."
 //
 //  Web application author:
-//
-//  Steve Chall, Renaissance Computing Institute:  stevec@renci.org
+//    Steve Chall, Renaissance Computing Institute:  stevec@renci.org
 //
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -35,9 +34,6 @@ $(document).ready(function() {
   addLogos();
   setupEventHandlers();
   drawRainbowColorMap();
-  $(window).resize(function() {
-     updateMapSize();
-  });
 })
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -51,6 +47,9 @@ var setupEventHandlers = function() {
   $("#shipColorMapMax").on("change", updateVarMax);
   $("#getShipDataButton").on("click", getShipData);
   $("#mapSzCtrl").on("change", onSelectMapSize);
+  $(window).resize(function() {
+     updateMapSize();
+  });
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -99,19 +98,45 @@ var onSelectShipDataVariable = function(e) {
   }
   
   ShipDataSet.numIx = this.selectedIndex;
-  var name = ShipDataSet.variableTypes[ShipDataSet.numIx] + " "
-      + $("#startYearSlider")[0].textContent;
 
   updateShipDataColorMapInfo();
 
   var layer = ShipDataSet.map.layers[ShipDataSet.map.layers.length - 1];
-  var layerSwitcher =
-      ShipDataSet.map.getControlsByClass("OpenLayers.Control.LayerSwitcher")[0];
 
   if (layer) {
-    layer.setName(name);
+    layer.setName(pointsLayerName());
     layer.redraw();
   }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+////////////////////////////////////////////////////////////////////////////////
+var rangeString = function() {
+  return ShipDataSet.startYear + "/"
+      + pad(ShipDataSet.startMonth, 2) + "/"
+      + pad(ShipDataSet.startDay, 2) + "-"
+      + ShipDataSet.endYear + "/"
+      + pad(ShipDataSet.endMonth, 2) + "/"
+      + pad(ShipDataSet.endDay, 2);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+////////////////////////////////////////////////////////////////////////////////
+var pointsLayerName = function() {
+  return ShipDataSet.variableTypes[ShipDataSet.numIx] + " " + rangeString();
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+// Set the Satellite color map label to show the name of the currently selected
+// variable.
+//
+////////////////////////////////////////////////////////////////////////////////
+var updateSatelliteColorMapInfo = function(e) {
+  $("#satDataClrMapSpan")[0].firstChild.textContent =
+      SatelliteDataSet.shortVarTypes[SatelliteDataSet.numIx] + ": ";
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -121,8 +146,13 @@ var onSelectShipDataVariable = function(e) {
 //
 ////////////////////////////////////////////////////////////////////////////////
 var onSelectSatelliteDataVariable = function(e) {
-  alert("Satellite data: not implemented for "
-      + SatelliteDataSet.minVarTypes[this.selectedIndex] + ".");
+  SatelliteDataSet.numIx = this.selectedIndex;
+  updateSatelliteColorMapInfo();
+
+  if (SatelliteDataSet.variableTypes[this.selectedIndex] != "None") {
+    alert("Satellite data: not implemented for "
+        + SatelliteDataSet.minVarTypes[this.selectedIndex] + ".");
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -144,7 +174,7 @@ var setMaxDay = function(year, month, daySliderSelector) {
   var maxDay = 31;
   var currentDay = $(daySliderSelector).slider("option", "value");
 
-  if (month === 2) { // February
+  if (month == 2) { // February
     if (year % 4) { // Not a leap year
       maxDay = 28;
     } else {
@@ -226,13 +256,12 @@ var onSelectEndDay = function(e, ui) {
 //
 ////////////////////////////////////////////////////////////////////////////////
 var addOuterElements = function() {
-  $("body").append("<table class = 'noBorder' id = 'bigTable'>"
-      + "</table>");
+  $("body").append("<table class = 'noBorder' id = 'bigTable'></table>");
 
   $("#bigTable").append("<tr id = 'titleRow'></tr>");
   $("#titleRow").append("<th id = 'titleHead' colspan='2'></th>");
-  $("#titleHead").append("<h2 id = 'centeredTitle'>Measurements of Net "
-      + "Community Production (MoNCP) in the World's Oceans</h2>");
+  $("#titleHead").append("<h3 id = 'centeredTitle'>Measurements of Net "
+      + "Community Production (MoNCP) in the World's Oceans</h3>");
 
   $("#bigTable").append("<tr id = 'versionRow'></tr>");
   $("#versionRow").append("<td id = 'versionElt' class = 'centeredElt' "
@@ -269,15 +298,15 @@ var addReturnText = function() {
   $("#topRow").append("<td id = 'returnTextElt'></td>");
   $("#returnTextElt").append("<fieldset class = 'groupBox' title = "
       + "'return text and status' id = 'returnTextGroup'>");
-  $("#returnTextGroup").append("<legend class = 'legendText'>Return Text and "
-      + "Status</legend>");
+  $("#returnTextGroup").append("<legend class = 'legendText'>Return Status"
+      + "</legend>");
   $("#returnTextGroup").append("<div id = 'returnStatus'></div><br>");
   $("#returnTextGroup").append("<div id = 'returnText'></div");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Currently a stub, thus disabled.
+// Currently a stub, and disabled to boot.
 //
 ////////////////////////////////////////////////////////////////////////////////
 var addLoginControls = function() {
@@ -331,7 +360,7 @@ var addColorMaps = function() {
       + "<input type = 'number' class = 'numEntry' id = 'shipColorMapMin'"
       + "size = 3'>"
 
-// Canvas color map
+// begin Canvas color map
       + "<canvas id = 'shipDataColorMap' class = 'clrMap' width = '95' height ="
       + "'19' title = 'By default, the Min and Max values are extracted from "
       + "the currently loaded data (for selected year and selected time "
@@ -347,7 +376,7 @@ var addColorMaps = function() {
       + "size = 3>"
       + "<label for = 'shipColorMapMax' id = shipColorMapMinLabel>Max</label>"
       + "</span><br>"
-      + "<span class = 'boxSpan'>Satellite Data: "
+      + "<span class = 'boxSpan' id = 'satDataClrMapSpan'>Satellite Data: "
       + "<label for = 'satColorMapMin' id = satColorMapMinLabel>Min</label>"
       + "<input type = 'number' class = 'numEntry' id = 'satColorMapMin'"
       + "size = 3 disabled = 'disabled'>"
@@ -397,10 +426,10 @@ var updateVarExtrema = function() {
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// This function updates ShipDataSet.varMin, and then causes all the ship data
-// points to be recolored based on the new min value.
+// Updates ShipDataSet.varMin, and then causes all the ship data points to be
+// recolored based on the new min value's effect on the color mapping.
 //
-// It currently does not update the current min value for the selected variable,
+// Currently does not update the current min value for the selected variable,
 // so if you change which ship data variable is being displayed and come back, 
 // the min value will have reverted to the actual min among that variable's
 // values in the database for the selected time period.
@@ -413,10 +442,10 @@ var updateVarMin = function(e) {
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// This function updates ShipDataSet.varMax, and then causes all the ship data
-// points to be recolored based on the new max value.
+// Updates ShipDataSet.varMax, and then causes all the ship data points to be
+// recolored based on the new max value's effect on the color mapping.
 //
-// It currently does not update the current max value for the selected variable,
+// Currently does not update the current max value for the selected variable,
 // so if you change which ship data variable is being displayed and come back, 
 // the max value will have reverted to the actual max among that variable's
 // values in the database for the selected time period.
@@ -503,7 +532,7 @@ var computeMinMaxValues = function() {
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// http://www.peterrobins.co.uk/it/olchangingprojection.html
+// From http://www.peterrobins.co.uk/it/olchangingprojection.html
 //
 ////////////////////////////////////////////////////////////////////////////////
 function formatLonlats(lonLat) {
@@ -730,14 +759,14 @@ function addShipDataPoints(map, projection) {
   });
 
   var points = new OpenLayers.Layer.Vector(
-      ShipDataSet.variableTypes[ShipDataSet.numIx] + " "
-          + ShipDataSet.startYear,
+      ShipDataSet.variableTypes[ShipDataSet.numIx],
       {
 	styleMap: dataStyles,
 	rendererOptions: {zIndexing: true}
       }
   );
   points.addFeatures(shipDataPoints);
+  points.setName(pointsLayerName());
 
   map.addLayer(points);
 
@@ -850,12 +879,13 @@ var addMapSizeControl = function() {
     $("#mzctRow").append("<td id = 'mzctElt3'></td>");
       $("#mzctElt3").append("<p id = 'mapSzP'>Map Size: </p>");
         $("#mapSzP").append("<select id = 'mapSzCtrl'></select>");
-          $("#mapSzCtrl").append($("<option>600 X 300</option>"));
-          $("#mapSzCtrl").append($("<option>800 X 400</option>"));
-          $("#mapSzCtrl").append($("<option>900 X 450</option>"));
-          $("#mapSzCtrl").append($("<option>1000 X 500</option>"));
-          $("#mapSzCtrl").append($("<option>1200 X 600</option>"));
-          $("#mapSzCtrl")[0].selectedIndex = 2;
+          $("#mapSzCtrl").append($("<option>566 X 350</option>"));
+          $("#mapSzCtrl").append($("<option>647 X 400</option>"));
+          $("#mapSzCtrl").append($("<option>728 X 450</option>"));
+          $("#mapSzCtrl").append($("<option>809 X 500</option>"));
+          $("#mapSzCtrl").append($("<option>971 X 600</option>"));
+          $("#mapSzCtrl").append($("<option>1052 X 650</option>"));
+          $("#mapSzCtrl")[0].selectedIndex = 3;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1032,9 +1062,8 @@ var addTimelineSliderTable = function() {
  
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Display it as a number on the slider and save it to use elsewhere.
-// Do with the current year selected what needs to be done: display it on the
-// slider and save it to use elsewhere.
+// Display the current Start Year value as an integer on the corresponding
+// slider knob and save it to use elsewhere.
 //
 ////////////////////////////////////////////////////////////////////////////////
 var applyStartYearSliderValue = function(event, ui){
@@ -1051,7 +1080,8 @@ var displayStartYearSliderValue = function(event, ui){
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Display it as a number on the slider and save it to use elsewhere.
+// Display the current End Year value as an integer on the corresponding
+// slider knob and save it to use elsewhere.
 //
 ////////////////////////////////////////////////////////////////////////////////
 var applyEndYearSliderValue = function(event, ui){
@@ -1068,7 +1098,8 @@ var displayEndYearSliderValue = function(event, ui){
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Display it as a number on the slider and save it to use elsewhere.
+// Display the current Start Month value as an integer on the corresponding
+// slider knob and save it to use elsewhere.
 //
 ////////////////////////////////////////////////////////////////////////////////
 var applyStartMonthSliderValue = function(event, ui){
@@ -1085,7 +1116,8 @@ var displayStartMonthSliderValue = function(event, ui){
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Display it as a number on the slider and save it to use elsewhere.
+// Display the current End Month value as an integer on the corresponding
+// slider knob and save it to use elsewhere.
 //
 ////////////////////////////////////////////////////////////////////////////////
 var applyEndMonthSliderValue = function(event, ui){
@@ -1102,7 +1134,8 @@ var displayEndMonthSliderValue = function(event, ui){
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Display it as a number on the slider and save it to use elsewhere.
+// Display the current Start Day value as an integer on the corresponding
+// slider knob and save it to use elsewhere.
 //
 ////////////////////////////////////////////////////////////////////////////////
 var applyStartDaySliderValue = function(event, ui){
@@ -1119,7 +1152,8 @@ var displayStartDaySliderValue = function(event, ui){
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Display it as a number on the slider and save it to use elsewhere.
+// Display the current End Day value as an integer on the corresponding
+// slider knob and save it to use elsewhere.
 //
 ////////////////////////////////////////////////////////////////////////////////
 var applyEndDaySliderValue = function(event, ui){

@@ -26,7 +26,7 @@ SatelliteDataSet.variableTypes = [ "None",
                                    "Particle Size" ];
 
 
-SatelliteDataSet.minVarTypes =    [ "none",
+SatelliteDataSet.minVarTypes =   [ "none",
                                    "bathymetry",
                                    "chlorophyll",
                                    "NPP1",
@@ -34,4 +34,13 @@ SatelliteDataSet.minVarTypes =    [ "none",
                                    "phytoplankton size distribution",
                                    "particle size distribution" ];
 
+SatelliteDataSet.shortVarTypes = [ "Satellite Data",
+                                   "Bathymetry",
+                                   "Chlorophyll",
+                                   "NPP1",
+                                   "NPP2",
+                                   "Phytopl Sz",
+                                   "Particle Sz" ];
 
+
+SatelliteDataSet.numIx = 0;
