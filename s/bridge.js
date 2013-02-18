@@ -196,8 +196,7 @@ var buildShipDataSetArray = function(shipData) {
         parseInt(shipData[i]["day"]),
         parseFloat(shipData[i]["lon"]),
         parseFloat(shipData[i]["lat"]),
-        parseFloat(shipData[i]["neto2"]),
-        shipData[i]["neto2"]
+        parseFloat(shipData[i]["neto2"])
     ));
   }
 }

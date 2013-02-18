@@ -75,8 +75,8 @@ ShipDataSet.minUnits = [      "%",
                               "units" ];
 
 // These are temp approximate "reasonable" values for placing dummy data within
-// appropriate ranges.  When real data is being used, the max and min values
-// for each variable will be computed from input.
+// appropriate ranges.  When real data are being used, the max and min values
+// for each variable are dynamically computed from input.
 //
 ShipDataSet.o2arMin = -2.1;
 ShipDataSet.o2arMax = 9.0;
@@ -117,4 +117,4 @@ ShipDataSet.selectedIndex = 0;
 ShipDataSet.selectControl;
 ShipDataSet.layerSwitcher;
 ShipDataSet.shipData;
-ShipDataSet.developmentVersion = 194;
+ShipDataSet.developmentVersion = 195;
