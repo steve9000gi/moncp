@@ -93,6 +93,18 @@ function pad(number, length) {
 ////////////////////////////////////////////////////////////////////////////////
 //
 ////////////////////////////////////////////////////////////////////////////////
+var rangeString = function() {
+  return ShipDataSet.startYear + "/"
+      + pad(ShipDataSet.startMonth, 2) + "/"
+      + pad(ShipDataSet.startDay, 2) + "-"
+      + ShipDataSet.endYear + "/"
+      + pad(ShipDataSet.endMonth, 2) + "/"
+      + pad(ShipDataSet.endDay, 2);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+////////////////////////////////////////////////////////////////////////////////
 var displaySelectedShipData = function(shipData) {
   $('#returnText').html(ShipDataSet.all.length
                         + " data point"
@@ -171,9 +183,6 @@ var buildShipDataSetArray = function(shipData) {
   ShipDataSet.all.splice(0, ShipDataSet.all.length);
 
   for (var i = 0; i < shipData.length; i++) {
-    //var year = new Date();
-    //year.setFullYear(shipData[i]["year"]);
-    //var ship = shipData[i]["ship"];
     ShipDataSet.all.push(new ShipDataSet(
         parseInt(shipData[i]["id"]),
         parseFloat(shipData[i]["o2ar"]),
@@ -202,7 +211,6 @@ var insertShipDataSet = function() {
   var rowdate = parseInt($("#year").val()) + "-"
            + pad(parseInt($("#month").val()), 2) + "-"
            + pad(parseInt($("#day").val()), 2);
-//  alert(rowdate);
 
   var data_pairs = {
     "o2ar": parseFloat($("#o2ar").val()), 
@@ -213,7 +221,6 @@ var insertShipDataSet = function() {
     "year": parseInt($("#year").val()),
     "month": parseInt($("#month").val()),
     "day": parseInt($("#day").val()),
-    //"shipID": Ship.all[$("#shipDropdown")[0].selectedIndex].id,
     "shipID": parseInt($("#cruiseID").val()),
     "lat": parseFloat($("#lat").val()),
     "lon": parseFloat($("#lon").val()),
@@ -241,14 +248,11 @@ var insertShipDataSet = function() {
 //
 ////////////////////////////////////////////////////////////////////////////////
 var cudShipDataSet_success_handler = function(data, textStatus, jqXHR) {
-  //var shipData = $.parseJSON(jqXHR.responseText);
-  //getShipDataSetsByYear(ShipDataSet.startYear);
   getShipDataSetsByTimeRange(ShipDataSet.startYear, ShipDataSet.startMonth,
                              ShipDataSet.startDay, ShipDataSet.endYear,
                              ShipDataSet.endMonth, ShipDataSet.endDay);
 
   if (typeof $("#viewShipDataDropdown") != 'undefined') {
-    //$("#changeShipDropdown")[0].selectedIndex = Ship.selectedIndex;
     $("#viewShipDataDropdown")[0].selectedIndex = ShipDataSet.selectedIndex;
   }
 
@@ -294,7 +298,6 @@ var updateShipDataSet = function() {
     "year": parseInt($("#year2").val()),
     "month": parseInt($("#month2").val()),
     "day": parseInt($("#day2").val()),
-    //"shipID": Ship.all[$("#changeShipDropdown")[0].selectedIndex].id,
     "shipID": parseInt($("#cruiseID2").val()),
     "lat": parseFloat($("#lat2").val()),
     "lon": parseFloat($("#lon2").val()),
@@ -310,7 +313,6 @@ var updateShipDataSet = function() {
   };
 
   if (typeof $("#viewShipDataDropdown") != 'undefined') {
-    //Ship.selectedIndex = $("#changeShipDropdown")[0].selectedIndex;
     ShipDataSet.selectedIndex = $("#viewShipDataDropdown")[0].selectedIndex;
   }
 
