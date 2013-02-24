@@ -52,12 +52,12 @@ ShipDataSet.variableTypes = [ "O&#8322;/Ar",
                               "Pressure",
                               "Net O&#8322;" ];
 
-ShipDataSet.minVarTypes = [ "O2/Ar",  // For HTML that won't show special chars
-                            "NCP", 
-                            "Salinity",
-                            "Temperature", 
-                            "Pressure",
-                            "Net O2" ];
+ShipDataSet.minVarTypes = [   "O2/Ar",  // HTML won't show special chars
+                              "NCP", 
+                              "Salinity",
+                              "Temperature", 
+                              "Pressure",
+                              "Net O2" ];
 
 ShipDataSet.units = [         " %", 
                               " &#956;mol O&#8322; m&#8315;&sup2;d&#8315;&"
@@ -73,6 +73,13 @@ ShipDataSet.minUnits = [      "%",
                               "degrees C", 
                               "millibars",
                               "units" ];
+
+ShipDataSet.colorMap = [      "Rainbow",
+                              "Grayscale",
+                              "Heated body" ];
+
+ShipDataSet.dataSource = [    "ship",
+                              "satellite"];
 
 // These are temp approximate "reasonable" values for placing dummy data within
 // appropriate ranges.  When real data are being used, the max and min values
@@ -101,8 +108,6 @@ ShipDataSet.minYear = 1997;
 ShipDataSet.maxYear = 2012;
 ShipDataSet.startYear = 2008;
 ShipDataSet.endYear = 2008;
-//ShipDataSet.startYear = 2005;
-//ShipDataSet.endYear = 2005;
 ShipDataSet.minMonth = 1;
 ShipDataSet.maxMonth = 12;
 ShipDataSet.startMonth = ShipDataSet.minMonth;
@@ -117,4 +122,13 @@ ShipDataSet.selectedIndex = 0;
 ShipDataSet.selectControl;
 ShipDataSet.layerSwitcher;
 ShipDataSet.shipData;
-ShipDataSet.developmentVersion = 195;
+ShipDataSet.dataSourceIx = 0;       // "ship"
+ShipDataSet.shipDataColorMapIx = 0; // "Rainbow";
+ShipDataSet.satDataColorMapIx = 1;  // "Grayscale";
+ShipDataSet.dataColorMapIx = { "shipIx": 0,
+                               "satIx": 1
+                             };
+ShipDataSet.drawColorMap;           // array of functions
+ShipDataSet.getRGBFromLinearValue;  // array of functions
+
+ShipDataSet.developmentVersion = 209;

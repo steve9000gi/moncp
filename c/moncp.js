@@ -21,6 +21,7 @@ $(document).ready(function() {
   addReturnText();
   //addLoginControls();
   addColorMaps();
+  addColorMapSelectionOverlay();
   addTimelineSliderTable();
   addMap();
   addNewShipDataControls();
@@ -33,7 +34,10 @@ $(document).ready(function() {
   addContact();
   addLogos();
   setupEventHandlers();
-  drawRainbowColorMap();
+  drawRainbowColorMap("#shipDataColorMap");
+  drawGrayScaleColorMap("#satDataColorMap");
+  buildDrawColorMapArray();
+  buildGetRGBFromLinearValueArray();
 })
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -46,10 +50,209 @@ var setupEventHandlers = function() {
   $("#shipColorMapMin").on("change", updateVarMin);
   $("#shipColorMapMax").on("change", updateVarMax);
   $("#getShipDataButton").on("click", getShipData);
+  $("#shipDataColorMap").on("click", selectColorMap);
+  $("#satDataColorMap").on("click", selectColorMap);
+  $("#selectRainbowRow").on("click", onSelectRainbowRow);
+  $("#selectGrayScaleRow").on("click", onSelectGrayScaleRow);
+  $("#selectHeatedBodyRow").on("click", onSelectHeatedBodyRow);
   $("#mapSzCtrl").on("change", onSelectMapSize);
+  $("#hideButton").on("click", hideOverlay);
   $(window).resize(function() {
      updateMapSize();
   });
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+////////////////////////////////////////////////////////////////////////////////
+var onSelectRainbowRow = function(e) {
+  if (ShipDataSet.dataSourceIx == 0) {
+    ShipDataSet.shipDataColorMapIx = 0;
+  } else if (ShipDataSet.dataSourceIx == 1) {
+    ShipDataSet.satDataColorMapIx = 0;
+  } else {
+    alert("onSelectRainbowRow: unknown data source");
+  }
+  
+  highlightColorMapByDataSource(ShipDataSet.dataSourceIx);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+////////////////////////////////////////////////////////////////////////////////
+var onSelectGrayScaleRow = function(e) {
+  if (ShipDataSet.dataSourceIx == 0) {
+    ShipDataSet.shipDataColorMapIx = 1;
+  } else if (ShipDataSet.dataSourceIx == 1) {
+    ShipDataSet.satDataColorMapIx = 1;
+  } else {
+    alert("onSelectGrayscaleRow: unknown data source");
+  }
+  
+  highlightColorMapByDataSource(ShipDataSet.dataSourceIx);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+////////////////////////////////////////////////////////////////////////////////
+var onSelectHeatedBodyRow = function(e) {
+  if (ShipDataSet.dataSourceIx == 0) {
+    ShipDataSet.shipDataColorMapIx = 2;
+  } else if (ShipDataSet.dataSourceIx == 1) {
+    ShipDataSet.satDataColorMapIx = 2;
+  } else {
+    alert("onSelectHeatedBodyRow: unknown data source");
+  }
+  
+  highlightColorMapByDataSource(ShipDataSet.dataSourceIx);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+////////////////////////////////////////////////////////////////////////////////
+var addColorMapSelectionOverlay = function() {
+  $("#colorMapsElt").append("<div id = 'overlay' draggable = 'true'></div>");
+  $("#overlay").draggable();
+  $("#overlay").append("<h3 id = 'clrMapSelect'>Select Color Map"
+      + "</h3>"); 
+  $("#overlay").append("<table id = 'colorMapSelectTable' class = centeredElt>"
+      + "</table>");
+  $("#colorMapSelectTable").append("<tr id = 'selectRainbowRow'></tr>");
+  $("#selectRainbowRow").append("<td><p>Rainbow:</p></td>");
+  $("#selectRainbowRow").append("<td id = 'rainbowElt'></td>");
+  $("#rainbowElt").append("<canvas id = 'selectRainbowColorMap' class = "
+      + "'clrMap clrMapSelect' width = '95' height = '19' title = "
+      + "'Click to select'></canvas>");
+  drawRainbowColorMap("#selectRainbowColorMap");
+  $("#selectRainbowRow").append("<td></td>");
+  addGrayScaleToOverlay();
+  addHeatedBodyToOverlay();
+  $("#overlay").append("<input type = 'button' value = 'OK' onclick = "
+      + "'hideOverlay' id = 'hideButton'>");
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+////////////////////////////////////////////////////////////////////////////////
+var addGrayScaleToOverlay = function() {
+    $("#colorMapSelectTable").append("<tr id = 'selectGrayScaleRow'></tr>");
+  $("#selectGrayScaleRow").append("<td><p>Grayscale:</p></td>");
+  $("#selectGrayScaleRow").append("<td id = 'grayScaleElt'></td>");
+  $("#grayScaleElt").append("<canvas id = 'selectGrayScaleColorMap' class = "
+      + "'clrMap clrMapSelect' width = '95' height = '19' title = "
+      + "'Click to select'></canvas>");
+  drawGrayScaleColorMap("#selectGrayScaleColorMap");
+  $("#selectGrayScaleRow").append("<td></td>");
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+////////////////////////////////////////////////////////////////////////////////
+var addHeatedBodyToOverlay = function() {
+    $("#colorMapSelectTable").append("<tr id = 'selectHeatedBodyRow'></tr>");
+  $("#selectHeatedBodyRow").append("<td><p>Heated body:</p></td>");
+  $("#selectHeatedBodyRow").append("<td id = 'heatedBodyElt'></td>");
+  $("#heatedBodyElt").append("<canvas id = 'selectHeatedBodyColorMap' class = "
+      + "'clrMap clrMapSelect' width = '95' height = '19' title = "
+      + "'Click to select'></canvas>");
+  drawHeatedBodyColorMap("#selectHeatedBodyColorMap");
+  $("#selectHeatedBodyRow").append("<td></td>");
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+////////////////////////////////////////////////////////////////////////////////
+var highlightColorMapByIndex = function(colorMapIx) {
+  switch (colorMapIx) {
+    case 0:
+      $("#selectRainbowColorMap").css(   {"border-width": "3px",
+                                          "margin": "0px"});
+      $("#selectGrayScaleColorMap").css( {"border-width": "1px",
+                                          "margin": "2px"});
+      $("#selectHeatedBodyColorMap").css({"border-width": "1px",
+                                          "margin": "2px"});
+      break;
+    case 1:
+      $("#selectRainbowColorMap").css(   {"border-width": "1px",
+                                          "margin": "2px"});
+      $("#selectGrayScaleColorMap").css( {"border-width": "3px",
+                                          "margin": "0px"});
+      $("#selectHeatedBodyColorMap").css({"border-width": "1px",
+                                          "margin": "2px"});
+      break;
+    case 2:
+      $("#selectRainbowColorMap").css(   {"border-width": "1px",
+                                          "margin": "2px"});
+      $("#selectGrayScaleColorMap").css( {"border-width": "1px",
+                                          "margin": "2px"});
+      $("#selectHeatedBodyColorMap").css({"border-width": "3px",
+                                          "margin": "0px"});
+      break;
+    default:
+      alert("highlightColorMapByIndex: invalid index");
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+////////////////////////////////////////////////////////////////////////////////
+var highlightColorMapByDataSource = function(dataSourceIx) {
+  if (dataSourceIx == 0) { // ship
+    highlightColorMapByIndex(ShipDataSet.shipDataColorMapIx)
+  } else if (dataSourceIx == 1) { // satellite
+    highlightColorMapByIndex(ShipDataSet.satDataColorMapIx);
+  } else {
+    alert("highlightColorMapByDataSource: unknown data source index");
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+// Event handler in response to user clicking on one of the color maps. Brings'
+// up the "Select <x> Data Color Map" overlay, where <x> is either the Ship or 
+// Satellite color map the user has clicked on.
+// 
+////////////////////////////////////////////////////////////////////////////////
+var selectColorMap = function(e) {
+  $("#overlay")[0].style.display = "block";
+
+  if (this.attributes["id"].value == "shipDataColorMap") {
+    $("#clrMapSelect").text("Select Ship Data Color Map"); 
+    ShipDataSet.dataSourceIx = 0;
+  } else if (this.attributes["id"].value == "satDataColorMap") {
+    $("#clrMapSelect").text("Select Satellite Data Color Map"); 
+    ShipDataSet.dataSourceIx = 1;
+  } else {
+    alert("selectColorMap: failed to identify color map");
+  }
+
+  highlightColorMapByDataSource(ShipDataSet.dataSourceIx);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+////////////////////////////////////////////////////////////////////////////////
+var buildDrawColorMapArray = function() {
+  ShipDataSet.drawColorMap = [ drawRainbowColorMap,
+                               drawGrayScaleColorMap,
+                               drawHeatedBodyColorMap ];
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+////////////////////////////////////////////////////////////////////////////////
+var hideOverlay = function(e) {
+  $("#overlay")[0].style.display = "none";
+
+  if (ShipDataSet.dataSourceIx == 0) {
+    ShipDataSet.drawColorMap[ShipDataSet.shipDataColorMapIx]("#shipDataColorMap");
+  } else if (ShipDataSet.dataSourceIx == 1) {
+    ShipDataSet.drawColorMap[ShipDataSet.satDataColorMapIx]("#satDataColorMap");
+  }  else {
+    alert("hideOverlay: unknown data source");
+  }
+
+  ShipDataSet.map.layers[ShipDataSet.map.layers.length - 1].redraw();
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -312,15 +515,17 @@ var addLoginControls = function() {
 ////////////////////////////////////////////////////////////////////////////////
 //
 ////////////////////////////////////////////////////////////////////////////////
-var drawRainbowColorMap = function() {
-  var canvas = $("#shipDataColorMap")[0];
+var drawRainbowColorMap = function(selector) {
+  var canvas = $(selector)[0];
   if (canvas.getContext) {
     var context = canvas.getContext("2d");
     var width = 95;
     var height = 19;
 
+    context.clearRect(0, 0, width, height);
+
     for (var i = 0; i < width; i++) {
-      var rgb = getColorFromLinearValue(0, width, i);
+      var rgb = getRainbowRGBFromLinearValue(0, width, i);
       var r =  parseInt(rgb[0]);
       var g =  parseInt(rgb[1]);
       var b =  parseInt(rgb[2]);
@@ -339,6 +544,78 @@ var drawRainbowColorMap = function() {
 ////////////////////////////////////////////////////////////////////////////////
 //
 ////////////////////////////////////////////////////////////////////////////////
+var drawGrayScaleColorMap = function(selector) {
+  var canvas = $(selector)[0];
+  if (canvas.getContext) {
+    var context = canvas.getContext("2d");
+    var width = 95;
+    var height = 19;
+
+    context.clearRect(0, 0, width, height);
+
+    for (var i = 0; i < width; i++) {
+      var v = parseInt(Math.round((i / width) * 255.0));
+      context.strokeStyle = "rgb(" + v + ", " + v + ", " + v + ")";
+      context.beginPath();
+      context.moveTo(i, 0);
+      context.lineTo(i, height);
+      context.closePath();
+      context.stroke();
+    }
+  } else {
+    alert("Can't draw color map: HTML Canvas not supported");
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+////////////////////////////////////////////////////////////////////////////////
+var drawHeatedBodyColorMap = function(selector) {
+  var canvas = $(selector)[0];
+  if (canvas.getContext) {
+    var context = canvas.getContext("2d");
+    var width = 95;
+    var height = 19;
+
+    context.clearRect(0, 0, width, height);
+
+    for (var i = 0; i < width; i++) {
+      var h;
+      var s = 1.0;
+      var v;
+
+      if (i < width / 2) {
+        h = 0.0;
+        v = (2.0 * i) / width;
+      } else {
+        h = 2.0 * (i - (width / 2.0)) / (width * 6.0);
+        v = 1.0;
+      }
+
+/*
+      var h = i/(width * 6.0);
+      //var v = (1.0 * i)/width;
+      var v = 1.0;
+*/
+      var rgb = hsvToRgb(h, s, v);
+      var r =  parseInt(rgb[0]);
+      var g =  parseInt(rgb[1]);
+      var b =  parseInt(rgb[2]);
+      context.strokeStyle = "rgb(" + r + ", " + g + ", " + b + ")";
+      context.beginPath();
+      context.moveTo(i, 0);
+      context.lineTo(i, height);
+      context.closePath();
+      context.stroke();
+    }
+  } else {
+    alert("Can't draw color map: HTML Canvas not supported");
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+////////////////////////////////////////////////////////////////////////////////
 var addColorMaps = function() {
   $("#topRow").append("<td id = 'colorMapsElt'></td");
   $("#colorMapsElt").append("<fieldset class = 'groupBox' id = 'colorMapGroup'>"
@@ -348,7 +625,7 @@ var addColorMaps = function() {
       + "<input type = 'number' class = 'numEntry' id = 'shipColorMapMin'"
       + "size = 3'>"
 
-// begin Canvas color map
+// begin Canvas ship data color map
       + "<canvas id = 'shipDataColorMap' class = 'clrMap' width = '95' height ="
       + "'19' title = 'By default, the Min and Max values are extracted from "
       + "the currently loaded data (for selected year and selected time "
@@ -358,8 +635,6 @@ var addColorMaps = function() {
       + "Max, it will be colored white.'></canvas>"
 // end Canvas color map
 
-//      + "<img class = 'clrMap' src = './rainbow.png' alt = 'ship"
-//      + " data color map' title = 'Click to change (not implemented)'>"
       + "<input type = 'number' class = 'numEntry' id = 'shipColorMapMax'"
       + "size = 3>"
       + "<label for = 'shipColorMapMax' id = shipColorMapMinLabel>Max</label>"
@@ -368,9 +643,13 @@ var addColorMaps = function() {
       + "<label for = 'satColorMapMin' id = satColorMapMinLabel>Min</label>"
       + "<input type = 'number' class = 'numEntry' id = 'satColorMapMin'"
       + "size = 3 disabled = 'disabled'>"
-      + "<img class = 'clrMap' src = './grayScale.png' alt = "
-      + "'satellite data color map' title = 'Click to change (not implemented)'"
-      + "><input type = 'number' class = 'numEntry' id = 'satColorMapMax'"
+
+// begin Canvas satellite data color map
+      + "<canvas id = 'satDataColorMap' class = 'clrMap' width = '95' height ="
+      + "'19' title = 'Click to change (not implemented)'></canvas>"
+// end Canvas color map
+
+      + "<input type = 'number' class = 'numEntry' id = 'satColorMapMax'"
       + "size = 3 disabled = 'disabled'>"
       + "<label for = 'satColorMapMax' id = satColorMapMaxLabel>Max</label>"
       + "</span>"
@@ -564,7 +843,12 @@ var addMap = function() {
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Rainbow color map only.
+////////////////////////////////////////////////////////////////////////////////
+var getColorFromLinearValue = function(min, max, value) {
+  return ShipDataSet.getRGBFromLinearValue[ShipDataSet.shipDataColorMapIx](min, max, value);
+}
+
+////////////////////////////////////////////////////////////////////////////////
 //
 ////////////////////////////////////////////////////////////////////////////////
 var getPointColor = function(feature) {
@@ -708,15 +992,18 @@ function addShipDataPoints(map, projection) {
   computeMinMaxValues();
   updateShipDataColorMapInfo();
 
+  var lonSum = 0, latSum = 0, lonAvg = 0, latAvg = 0;
+  var l = 0, r = 0, t = 0, b = 0; 
+
   var shipDataPoints = new Array(ShipDataSet.all.length);
 
   for (var i = 0; i < ShipDataSet.all.length; i++) {
-      shipDataPoints[i] = new OpenLayers.Feature.Vector(
-	  new OpenLayers.Geometry.Point(
-	    ShipDataSet.all[i].lon, ShipDataSet.all[i].lat
-	  ).transform(projection, map.getProjection()),
-	  { dataIndex: i }
-      );
+    shipDataPoints[i] = new OpenLayers.Feature.Vector(
+        new OpenLayers.Geometry.Point(
+            ShipDataSet.all[i].lon, ShipDataSet.all[i].lat
+            ).transform(projection, map.getProjection()),
+        { dataIndex: i }
+    );
   }
 
   var renderer = OpenLayers.Util.getParameters(window.location.href).renderer;
@@ -739,19 +1026,16 @@ function addShipDataPoints(map, projection) {
   var dataStyles = new OpenLayers.StyleMap({
       "default": defaultStyle,
       "select": new OpenLayers.Style({
-	  strokeColor: "#ffffff",
-	  fillColor: "#000000",
-	  graphicZIndex: 2,
+          strokeColor: "#ffffff",
+          fillColor: "#000000",
+          graphicZIndex: 2,
           pointRadius: 6
       })
   });
 
   var points = new OpenLayers.Layer.Vector(
       ShipDataSet.variableTypes[ShipDataSet.numIx],
-      {
-	styleMap: dataStyles,
-	rendererOptions: {zIndexing: true}
-      }
+      { styleMap: dataStyles, rendererOptions: {zIndexing: true}}
   );
   points.addFeatures(shipDataPoints);
   points.setName(pointsLayerName());
@@ -761,8 +1045,8 @@ function addShipDataPoints(map, projection) {
   var select = new OpenLayers.Control.SelectFeature(
       points,
       { hover: true,
-	onBeforeSelect: displayDataPointPopup,
-	onUnselect: removeDataPointPopup,
+        onBeforeSelect: displayDataPointPopup,
+        onUnselect: removeDataPointPopup,
       }
   );
 
@@ -770,7 +1054,17 @@ function addShipDataPoints(map, projection) {
   select.activate();
   ShipDataSet.selectControl = select;
 
-  map.setCenter(new OpenLayers.LonLat(0, 0), 1);
+  var bounds = shipDataPoints[0].geometry.bounds;
+
+/*
+  if (map.zoom) {
+    map.zoomToExtent(bounds);
+  } else {
+*/
+    map.setCenter(bounds.getCenterLonLat());
+/*
+  }
+*/
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -793,14 +1087,37 @@ var updateShipDataColorMapInfo = function() {
 // "empricially" derived to approximate rainbow.png as closely as feasible. 
 //
 ////////////////////////////////////////////////////////////////////////////////
-var getColorFromLinearValue = function(min, max, val) {
+var getRainbowRGBFromLinearValue = function(min, max, val) {
   var fraction = 1 - (val - min) / (max - min);
   var minHue = 260 / 360;
   var maxHue = 0 / 360;
   var hue = (minHue - maxHue) * fraction;
-  var saturation = 0.9; // 0.96; // 0.0 <= saturation <= 1.0
-  var lightness = 0.47;  // 0.0 <= saturation <= 1.0
+  var saturation = 0.9; // 0.0 <= saturation <= 1.0
+  var lightness = 0.47; // 0.0 <= lightness <= 1.0
   return hslToRgb(hue, saturation, lightness);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+////////////////////////////////////////////////////////////////////////////////
+var getGrayscaleRGBFromLinearValue = function(min, max, val) {
+  return hslToRgb(0, 0, 0.47);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+////////////////////////////////////////////////////////////////////////////////
+var getHeatedBodyRGBFromLinearValue = function(min, max, val) {
+  return hslToRgb(0, 1, 0.47);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+////////////////////////////////////////////////////////////////////////////////
+var buildGetRGBFromLinearValueArray = function() {
+  ShipDataSet.getRGBFromLinearValue = [ getRainbowRGBFromLinearValue,
+                                        getGrayscaleRGBFromLinearValue,
+                                        getHeatedBodyRGBFromLinearValue ];
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -848,6 +1165,7 @@ var addVisButton = function() {
 //
 ////////////////////////////////////////////////////////////////////////////////
 var updateMapSize = function() {
+
 /*
   var width = $(window).width() - 20;
   var height = width / 2 + 20;
@@ -977,6 +1295,7 @@ var addTimelineSliderTable = function() {
 
     //Month:
     $("#timeTable").append("<tr id = 'monthRow'></tr>");
+
       $("#monthRow").append("<td id = 'startMonth'");
         $("#startMonth").append("<span class = 'boxSpan' "
             + "id = 'startMonthSpan'>");
