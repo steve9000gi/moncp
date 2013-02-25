@@ -111,7 +111,8 @@ var onSelectHeatedBodyRow = function(e) {
 //
 ////////////////////////////////////////////////////////////////////////////////
 var addColorMapSelectionOverlay = function() {
-  $("#colorMapsElt").append("<div id = 'overlay' draggable = 'true'></div>");
+  //$("#colorMapsElt").append("<div id = 'overlay' draggable = 'true'></div>");
+  $("body").append("<div id = 'overlay' draggable = 'true'></div>");
   $("#overlay").draggable();
   $("#overlay").append("<h3 id = 'clrMapSelect'>Select Color Map"
       + "</h3>"); 
@@ -591,6 +592,12 @@ var drawHeatedBodyColorMap = function(selector) {
         h = 2.0 * (i - (width / 2.0)) / (width * 6.0);
         v = 1.0;
       }
+      
+      var desatThreshold = 5.0 * width / 6.0;
+
+      if (i > desatThreshold) {
+        s = 1.0 - (i - desatThreshold ) / (width - desatThreshold);
+      }
 
 /*
       var h = i/(width * 6.0);
@@ -627,12 +634,12 @@ var addColorMaps = function() {
 
 // begin Canvas ship data color map
       + "<canvas id = 'shipDataColorMap' class = 'clrMap' width = '95' height ="
-      + "'19' title = 'By default, the Min and Max values are extracted from "
-      + "the currently loaded data (for selected year and selected time "
-      + "period). You can change the Min and Max values dynamically. If the "
-      + "value for a data point is less than the Min displayed, that data point"
-      + " will be colored black.  If that value is greater than the displayed "
-      + "Max, it will be colored white.'></canvas>"
+      + "'19' title = 'Click to change. By default, the Min and Max values are "
+      + "extracted from the currently loaded data (for selected year and "
+      + "selected time period). You can change the Min and Max values "
+      + "dynamically. If the value for a data point is less than the Min "
+      + "displayed, that data point will be colored black.  If that value is "
+      + "greater than the displayed Max, it will be colored white.'></canvas>"
 // end Canvas color map
 
       + "<input type = 'number' class = 'numEntry' id = 'shipColorMapMax'"
@@ -646,7 +653,7 @@ var addColorMaps = function() {
 
 // begin Canvas satellite data color map
       + "<canvas id = 'satDataColorMap' class = 'clrMap' width = '95' height ="
-      + "'19' title = 'Click to change (not implemented)'></canvas>"
+      + "'19' title = 'Click to change'></canvas>"
 // end Canvas color map
 
       + "<input type = 'number' class = 'numEntry' id = 'satColorMapMax'"
@@ -1086,6 +1093,8 @@ var updateShipDataColorMapInfo = function() {
 // Map a linear value to a rainbow color map. Various h, s, and l values were
 // "empricially" derived to approximate rainbow.png as closely as feasible. 
 //
+// Assumption: min <= val <= max
+//
 ////////////////////////////////////////////////////////////////////////////////
 var getRainbowRGBFromLinearValue = function(min, max, val) {
   var fraction = 1 - (val - min) / (max - min);
@@ -1099,16 +1108,41 @@ var getRainbowRGBFromLinearValue = function(min, max, val) {
 
 ////////////////////////////////////////////////////////////////////////////////
 //
+// Assumption: min <= val <= max
+//
 ////////////////////////////////////////////////////////////////////////////////
 var getGrayscaleRGBFromLinearValue = function(min, max, val) {
-  return hslToRgb(0, 0, 0.47);
+  var n = parseInt(Math.round(((val - min) / (max - min)) * 255.0))
+  return [n, n, n];
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //
+// Assumption: min <= val <= max
+//
 ////////////////////////////////////////////////////////////////////////////////
 var getHeatedBodyRGBFromLinearValue = function(min, max, val) {
-  return hslToRgb(0, 1, 0.47);
+  var i = val - min;
+  var width = max - min;
+  var h;
+  var s = 1.0;
+  var v;
+
+  if (i < width / 2) {
+    h = 0.0;
+    v = (2.0 * i) / width;
+  } else {
+    h = 2.0 * (i - (width / 2.0)) / (width * 6.0);
+    v = 1.0;
+  }
+
+  var desatThreshold = 5.0 * width / 6.0; // desaturation threshold
+
+  if (i > desatThreshold) {
+    s = 1.0 - (val - desatThreshold ) / (width - desatThreshold);
+  }
+
+  return rgb = hsvToRgb(h, s, v);
 }
 
 ////////////////////////////////////////////////////////////////////////////////

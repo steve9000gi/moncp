@@ -131,4 +131,4 @@ ShipDataSet.dataColorMapIx = { "shipIx": 0,
 ShipDataSet.drawColorMap;           // array of functions
 ShipDataSet.getRGBFromLinearValue;  // array of functions
 
-ShipDataSet.developmentVersion = 209;
+ShipDataSet.developmentVersion = 211;

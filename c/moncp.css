@@ -95,7 +95,8 @@ body {
 
 #overlay {
   display: none;
-  position: absolute;
+  top: -700px;
+  position: relative;
   left: 500px;
   width:100%;
   height: 100%;
@@ -108,7 +109,8 @@ body {
   text-align: center;
 }
 
-#overlay td, #overlay tr, #overlay p {
+/* #overlay td, #overlay tr, #overlay p { */
+#overlay p {
   height: 21px;
   line-height: 1.0;
   padding: 0px;
