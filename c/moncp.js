@@ -21,6 +21,7 @@ $(document).ready(function() {
   addReturnText();
   //addLoginControls();
   addColorMaps();
+  buildGetRGBFromLinearValueArray();
   addColorMapSelectionOverlay();
   addTimelineSliderTable();
   addMap();
@@ -34,10 +35,8 @@ $(document).ready(function() {
   addContact();
   addLogos();
   setupEventHandlers();
-  drawRainbowColorMap("#shipDataColorMap");
-  drawGrayScaleColorMap("#satDataColorMap");
-  buildDrawColorMapArray();
-  buildGetRGBFromLinearValueArray();
+  drawColorMap("#shipDataColorMap", ShipDataSet.shipDataColorMapIx);
+  drawColorMap("#satDataColorMap", ShipDataSet.satDataColorMapIx);
 })
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -55,6 +54,7 @@ var setupEventHandlers = function() {
   $("#selectRainbowRow").on("click", onSelectRainbowRow);
   $("#selectGrayScaleRow").on("click", onSelectGrayScaleRow);
   $("#selectHeatedBodyRow").on("click", onSelectHeatedBodyRow);
+  $("#selectCIEBlueRedRow").on("click", onSelectCIEBlueRedRow);
   $("#mapSzCtrl").on("change", onSelectMapSize);
   $("#hideButton").on("click", hideOverlay);
   $(window).resize(function() {
@@ -110,39 +110,62 @@ var onSelectHeatedBodyRow = function(e) {
 ////////////////////////////////////////////////////////////////////////////////
 //
 ////////////////////////////////////////////////////////////////////////////////
+var onSelectCIEBlueRedRow = function(e) {
+  if (ShipDataSet.dataSourceIx == 0) {
+    ShipDataSet.shipDataColorMapIx = 3;
+  } else if (ShipDataSet.dataSourceIx == 1) {
+    ShipDataSet.satDataColorMapIx = 3;
+  } else {
+    alert("onSelectCIEBlueRedRow: unknown data source");
+  }
+  
+  highlightColorMapByDataSource(ShipDataSet.dataSourceIx);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+////////////////////////////////////////////////////////////////////////////////
 var addColorMapSelectionOverlay = function() {
-  //$("#colorMapsElt").append("<div id = 'overlay' draggable = 'true'></div>");
-  $("body").append("<div id = 'overlay' draggable = 'true'></div>");
+  $("body").append("<div id = 'overlay' class = 'groupBox draggable = 'true'>"
+      + "</div>");
   $("#overlay").draggable();
   $("#overlay").append("<h3 id = 'clrMapSelect'>Select Color Map"
       + "</h3>"); 
   $("#overlay").append("<table id = 'colorMapSelectTable' class = centeredElt>"
       + "</table>");
-  $("#colorMapSelectTable").append("<tr id = 'selectRainbowRow'></tr>");
-  $("#selectRainbowRow").append("<td><p>Rainbow:</p></td>");
-  $("#selectRainbowRow").append("<td id = 'rainbowElt'></td>");
-  $("#rainbowElt").append("<canvas id = 'selectRainbowColorMap' class = "
-      + "'clrMap clrMapSelect' width = '95' height = '19' title = "
-      + "'Click to select'></canvas>");
-  drawRainbowColorMap("#selectRainbowColorMap");
-  $("#selectRainbowRow").append("<td></td>");
+  addRainbowToOverlay();
   addGrayScaleToOverlay();
   addHeatedBodyToOverlay();
-  $("#overlay").append("<input type = 'button' value = 'OK' onclick = "
+  addCIEBlueRedToOverlay();
+  $("#overlay").append("<input type = 'button' value = 'Done' onclick = "
       + "'hideOverlay' id = 'hideButton'>");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //
 ////////////////////////////////////////////////////////////////////////////////
+var addRainbowToOverlay = function() {
+  $("#colorMapSelectTable").append("<tr id = 'selectRainbowRow'></tr>");
+  $("#selectRainbowRow").append("<td><p id = 'p0'>Rainbow:</p></td>");
+  $("#selectRainbowRow").append("<td id = 'rainbowElt'></td>");
+  $("#rainbowElt").append("<canvas id = 'selectRainbowColorMap' class = "
+      + "'clrMap clrMapSelect' width = '95' height = '19' title = "
+      + "'Click to select'></canvas>");
+  drawColorMap("#selectRainbowColorMap", 0);
+  $("#selectRainbowRow").append("<td></td>");
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+////////////////////////////////////////////////////////////////////////////////
 var addGrayScaleToOverlay = function() {
-    $("#colorMapSelectTable").append("<tr id = 'selectGrayScaleRow'></tr>");
-  $("#selectGrayScaleRow").append("<td><p>Grayscale:</p></td>");
+  $("#colorMapSelectTable").append("<tr id = 'selectGrayScaleRow'></tr>");
+  $("#selectGrayScaleRow").append("<td><p id = 'p1'>Grayscale:</p></td>");
   $("#selectGrayScaleRow").append("<td id = 'grayScaleElt'></td>");
   $("#grayScaleElt").append("<canvas id = 'selectGrayScaleColorMap' class = "
       + "'clrMap clrMapSelect' width = '95' height = '19' title = "
       + "'Click to select'></canvas>");
-  drawGrayScaleColorMap("#selectGrayScaleColorMap");
+  drawColorMap("#selectGrayScaleColorMap", 1);
   $("#selectGrayScaleRow").append("<td></td>");
 }
 
@@ -150,14 +173,28 @@ var addGrayScaleToOverlay = function() {
 //
 ////////////////////////////////////////////////////////////////////////////////
 var addHeatedBodyToOverlay = function() {
-    $("#colorMapSelectTable").append("<tr id = 'selectHeatedBodyRow'></tr>");
-  $("#selectHeatedBodyRow").append("<td><p>Heated body:</p></td>");
+  $("#colorMapSelectTable").append("<tr id = 'selectHeatedBodyRow'></tr>");
+  $("#selectHeatedBodyRow").append("<td><p id = 'p2'>Black body:</p></td>");
   $("#selectHeatedBodyRow").append("<td id = 'heatedBodyElt'></td>");
   $("#heatedBodyElt").append("<canvas id = 'selectHeatedBodyColorMap' class = "
       + "'clrMap clrMapSelect' width = '95' height = '19' title = "
       + "'Click to select'></canvas>");
-  drawHeatedBodyColorMap("#selectHeatedBodyColorMap");
+  drawColorMap ("#selectHeatedBodyColorMap", 2);
   $("#selectHeatedBodyRow").append("<td></td>");
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+////////////////////////////////////////////////////////////////////////////////
+var addCIEBlueRedToOverlay = function() {
+  $("#colorMapSelectTable").append("<tr id = 'selectCIEBlueRedRow'></tr>");
+  $("#selectCIEBlueRedRow").append("<td><p id = 'p3'>Blue-red:</p></td>");
+  $("#selectCIEBlueRedRow").append("<td id = 'CIEBlueRedElt'></td>");
+  $("#CIEBlueRedElt").append("<canvas id = 'selectCIEBlueRedColorMap' class = "
+      + "'clrMap clrMapSelect' width = '95' height = '19' title = "
+      + "'Click to select'></canvas>");
+  drawColorMap ("#selectCIEBlueRedColorMap", 3);
+  $("#selectCIEBlueRedRow").append("<td></td>");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -172,6 +209,16 @@ var highlightColorMapByIndex = function(colorMapIx) {
                                           "margin": "2px"});
       $("#selectHeatedBodyColorMap").css({"border-width": "1px",
                                           "margin": "2px"});
+      $("#selectCIEBlueRedColorMap").css({"border-width": "1px",
+                                          "margin": "2px"});
+      $("#p0").css({"font-weight": "bold",
+                    "text-shadow": "2px 2px #ffffff"});
+      $("#p1").css({"font-weight": "normal",
+                    "text-shadow": "none"});
+      $("#p2").css({"font-weight": "normal",
+                    "text-shadow": "none"});
+      $("#p3").css({"font-weight": "normal",
+                    "text-shadow": "none"});
       break;
     case 1:
       $("#selectRainbowColorMap").css(   {"border-width": "1px",
@@ -180,6 +227,16 @@ var highlightColorMapByIndex = function(colorMapIx) {
                                           "margin": "0px"});
       $("#selectHeatedBodyColorMap").css({"border-width": "1px",
                                           "margin": "2px"});
+      $("#selectCIEBlueRedColorMap").css({"border-width": "1px",
+                                          "margin": "2px"});
+      $("#p0").css({"font-weight": "normal",
+                    "text-shadow": "none"});
+      $("#p1").css({"font-weight": "bold",
+                    "text-shadow": "2px 2px #ffffff"});
+      $("#p2").css({"font-weight": "normal",
+                    "text-shadow": "none"});
+      $("#p3").css({"font-weight": "normal",
+                    "text-shadow": "none"});
       break;
     case 2:
       $("#selectRainbowColorMap").css(   {"border-width": "1px",
@@ -188,6 +245,34 @@ var highlightColorMapByIndex = function(colorMapIx) {
                                           "margin": "2px"});
       $("#selectHeatedBodyColorMap").css({"border-width": "3px",
                                           "margin": "0px"});
+      $("#selectCIEBlueRedColorMap").css({"border-width": "1px",
+                                          "margin": "2px"});
+      $("#p0").css({"font-weight": "normal",
+                    "text-shadow": "none"});
+      $("#p1").css({"font-weight": "normal",
+                    "text-shadow": "none"});
+      $("#p2").css({"font-weight": "bold",
+                    "text-shadow": "2px 2px #ffffff"});
+      $("#p3").css({"font-weight": "normal",
+                    "text-shadow": "none"});
+      break;
+    case 3:
+      $("#selectRainbowColorMap").css(   {"border-width": "1px",
+                                          "margin": "2px"});
+      $("#selectGrayScaleColorMap").css( {"border-width": "1px",
+                                          "margin": "2px"});
+      $("#selectHeatedBodyColorMap").css({"border-width": "1px",
+                                          "margin": "2px"});
+      $("#selectCIEBlueRedColorMap").css({"border-width": "3px",
+                                          "margin": "0px"});
+      $("#p0").css({"font-weight": "normal",
+                    "text-shadow": "none"});
+      $("#p1").css({"font-weight": "normal",
+                    "text-shadow": "none"});
+      $("#p2").css({"font-weight": "normal",
+                    "text-shadow": "none"});
+      $("#p3").css({"font-weight": "bold",
+                    "text-shadow": "2px 2px #ffffff"});
       break;
     default:
       alert("highlightColorMapByIndex: invalid index");
@@ -216,6 +301,7 @@ var highlightColorMapByDataSource = function(dataSourceIx) {
 ////////////////////////////////////////////////////////////////////////////////
 var selectColorMap = function(e) {
   $("#overlay")[0].style.display = "block";
+  //$("#overlay").modal({"overlayID": "overlay"});
 
   if (this.attributes["id"].value == "shipDataColorMap") {
     $("#clrMapSelect").text("Select Ship Data Color Map"); 
@@ -233,22 +319,14 @@ var selectColorMap = function(e) {
 ////////////////////////////////////////////////////////////////////////////////
 //
 ////////////////////////////////////////////////////////////////////////////////
-var buildDrawColorMapArray = function() {
-  ShipDataSet.drawColorMap = [ drawRainbowColorMap,
-                               drawGrayScaleColorMap,
-                               drawHeatedBodyColorMap ];
-}
-
-////////////////////////////////////////////////////////////////////////////////
-//
-////////////////////////////////////////////////////////////////////////////////
 var hideOverlay = function(e) {
+//  $("body").css({"position": "relative"});
   $("#overlay")[0].style.display = "none";
 
   if (ShipDataSet.dataSourceIx == 0) {
-    ShipDataSet.drawColorMap[ShipDataSet.shipDataColorMapIx]("#shipDataColorMap");
+    drawColorMap("#shipDataColorMap", ShipDataSet.shipDataColorMapIx);
   } else if (ShipDataSet.dataSourceIx == 1) {
-    ShipDataSet.drawColorMap[ShipDataSet.satDataColorMapIx]("#satDataColorMap");
+    drawColorMap("#satDataColorMap", ShipDataSet.satDataColorMapIx);
   }  else {
     alert("hideOverlay: unknown data source");
   }
@@ -392,7 +470,6 @@ var setMaxDay = function(year, month, daySliderSelector) {
 // On user selection of Start Year, set the Start Day slider's max value 
 // appropriately for the current Start Year and Month.
 //
-//
 ////////////////////////////////////////////////////////////////////////////////
 var onSelectStartYear = function(e, ui) {
   ShipDataSet.startDay = setMaxDay(ShipDataSet.startYear,
@@ -515,8 +592,12 @@ var addLoginControls = function() {
 
 ////////////////////////////////////////////////////////////////////////////////
 //
+// "selector": what JQuerified DOM element to draw into: where to draw.
+// "clrMapIx": index into ShipDataSet.getRGBFromLinearValue array of functions:
+// what color map to draw.
+//
 ////////////////////////////////////////////////////////////////////////////////
-var drawRainbowColorMap = function(selector) {
+var drawColorMap = function(selector, clrMapIx) {
   var canvas = $(selector)[0];
   if (canvas.getContext) {
     var context = canvas.getContext("2d");
@@ -526,88 +607,11 @@ var drawRainbowColorMap = function(selector) {
     context.clearRect(0, 0, width, height);
 
     for (var i = 0; i < width; i++) {
-      var rgb = getRainbowRGBFromLinearValue(0, width, i);
+      var rgb = ShipDataSet.getRGBFromLinearValue[clrMapIx](0, width, i);
       var r =  parseInt(rgb[0]);
       var g =  parseInt(rgb[1]);
       var b =  parseInt(rgb[2]);
-      context.strokeStyle = "rgb(" + r + ", " + g + ", " + b + ")";
-      context.beginPath();
-      context.moveTo(i, 0);
-      context.lineTo(i, height);
-      context.closePath();
-      context.stroke();
-    }
-  } else {
-    alert("Can't draw color map: HTML Canvas not supported");
-  }  
-}
 
-////////////////////////////////////////////////////////////////////////////////
-//
-////////////////////////////////////////////////////////////////////////////////
-var drawGrayScaleColorMap = function(selector) {
-  var canvas = $(selector)[0];
-  if (canvas.getContext) {
-    var context = canvas.getContext("2d");
-    var width = 95;
-    var height = 19;
-
-    context.clearRect(0, 0, width, height);
-
-    for (var i = 0; i < width; i++) {
-      var v = parseInt(Math.round((i / width) * 255.0));
-      context.strokeStyle = "rgb(" + v + ", " + v + ", " + v + ")";
-      context.beginPath();
-      context.moveTo(i, 0);
-      context.lineTo(i, height);
-      context.closePath();
-      context.stroke();
-    }
-  } else {
-    alert("Can't draw color map: HTML Canvas not supported");
-  }
-}
-
-////////////////////////////////////////////////////////////////////////////////
-//
-////////////////////////////////////////////////////////////////////////////////
-var drawHeatedBodyColorMap = function(selector) {
-  var canvas = $(selector)[0];
-  if (canvas.getContext) {
-    var context = canvas.getContext("2d");
-    var width = 95;
-    var height = 19;
-
-    context.clearRect(0, 0, width, height);
-
-    for (var i = 0; i < width; i++) {
-      var h;
-      var s = 1.0;
-      var v;
-
-      if (i < width / 2) {
-        h = 0.0;
-        v = (2.0 * i) / width;
-      } else {
-        h = 2.0 * (i - (width / 2.0)) / (width * 6.0);
-        v = 1.0;
-      }
-      
-      var desatThreshold = 5.0 * width / 6.0;
-
-      if (i > desatThreshold) {
-        s = 1.0 - (i - desatThreshold ) / (width - desatThreshold);
-      }
-
-/*
-      var h = i/(width * 6.0);
-      //var v = (1.0 * i)/width;
-      var v = 1.0;
-*/
-      var rgb = hsvToRgb(h, s, v);
-      var r =  parseInt(rgb[0]);
-      var g =  parseInt(rgb[1]);
-      var b =  parseInt(rgb[2]);
       context.strokeStyle = "rgb(" + r + ", " + g + ", " + b + ")";
       context.beginPath();
       context.moveTo(i, 0);
@@ -624,40 +628,43 @@ var drawHeatedBodyColorMap = function(selector) {
 //
 ////////////////////////////////////////////////////////////////////////////////
 var addColorMaps = function() {
+  var inputTitle = "'By default, the default Min and Max values are extracted "
+      + "from the currently loaded data (for the selected time range), but you "
+      + "can change them. If the value for a data point is less than the Min "
+      + "displayed, that data point will be black.  If that value is greater "
+      + "than the displayed Max, it will be white.'";
+
   $("#topRow").append("<td id = 'colorMapsElt'></td");
   $("#colorMapsElt").append("<fieldset class = 'groupBox' id = 'colorMapGroup'>"
       + "<legend class = 'legendText'>Color Maps</legend>"
       + "<span class = 'boxSpan' id = 'shipDataClrMapSpan'>Ship Data: "
       + "<label for = 'shipColorMapMin' id = shipColorMapMinLabel>Min</label>"
-      + "<input type = 'number' class = 'numEntry' id = 'shipColorMapMin'"
-      + "size = 3'>"
+      + "<input type = 'number' class = 'numEntry' id = 'shipColorMapMin' "
+      + "title = " + inputTitle + " size = 3'>"
 
 // begin Canvas ship data color map
       + "<canvas id = 'shipDataColorMap' class = 'clrMap' width = '95' height ="
-      + "'19' title = 'Click to change. By default, the Min and Max values are "
-      + "extracted from the currently loaded data (for selected year and "
-      + "selected time period). You can change the Min and Max values "
-      + "dynamically. If the value for a data point is less than the Min "
-      + "displayed, that data point will be colored black.  If that value is "
-      + "greater than the displayed Max, it will be colored white.'></canvas>"
+      + "'19' title = 'Click to change ship data color map.'></canvas>"
+/*
+*/
 // end Canvas color map
 
-      + "<input type = 'number' class = 'numEntry' id = 'shipColorMapMax'"
-      + "size = 3>"
+      + "<input type = 'number' class = 'numEntry' id = 'shipColorMapMax' "
+      + "title = " + inputTitle + "size = 3>"
       + "<label for = 'shipColorMapMax' id = shipColorMapMinLabel>Max</label>"
       + "</span><br>"
       + "<span class = 'boxSpan' id = 'satDataClrMapSpan'>Satellite Data: "
       + "<label for = 'satColorMapMin' id = satColorMapMinLabel>Min</label>"
-      + "<input type = 'number' class = 'numEntry' id = 'satColorMapMin'"
-      + "size = 3 disabled = 'disabled'>"
+      + "<input type = 'number' class = 'numEntry' id = 'satColorMapMin' "
+      + "title = 'not implemented' size = 3 disabled = 'disabled'>"
 
 // begin Canvas satellite data color map
       + "<canvas id = 'satDataColorMap' class = 'clrMap' width = '95' height ="
-      + "'19' title = 'Click to change'></canvas>"
+      + "'19' title = 'Click to change satellite data color map.'></canvas>"
 // end Canvas color map
 
-      + "<input type = 'number' class = 'numEntry' id = 'satColorMapMax'"
-      + "size = 3 disabled = 'disabled'>"
+      + "<input type = 'number' class = 'numEntry' id = 'satColorMapMax' "
+      + "title = 'not implemented' size = 3 disabled = 'disabled'>"
       + "<label for = 'satColorMapMax' id = satColorMapMaxLabel>Max</label>"
       + "</span>"
       + "</fieldset>");
@@ -850,12 +857,17 @@ var addMap = function() {
 
 ////////////////////////////////////////////////////////////////////////////////
 //
+// Note: hardwired for ship data. Uses the color mapping algorithm indicated by
+// ShipDataSet.shipDataColorMapIx.
+//
 ////////////////////////////////////////////////////////////////////////////////
 var getColorFromLinearValue = function(min, max, value) {
   return ShipDataSet.getRGBFromLinearValue[ShipDataSet.shipDataColorMapIx](min, max, value);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+//
+// Note: this is for ship data points.
 //
 ////////////////////////////////////////////////////////////////////////////////
 var getPointColor = function(feature) {
@@ -881,6 +893,9 @@ var getPointColor = function(feature) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+//
+// This is to be called when the mouse is hovering over the data point indicated
+// by the "feature" input argument.
 //
 ////////////////////////////////////////////////////////////////////////////////
 var displayDataPointPopup = function(feature) {
@@ -912,6 +927,9 @@ var displayDataPointPopup = function(feature) {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// 
+// The mouse is no longer hovering over the data point indicated by input arg
+// "feature."
 //
 ////////////////////////////////////////////////////////////////////////////////
 var removeDataPointPopup = function(feature) {
@@ -1142,7 +1160,42 @@ var getHeatedBodyRGBFromLinearValue = function(min, max, val) {
     s = 1.0 - (val - desatThreshold ) / (width - desatThreshold);
   }
 
-  return rgb = hsvToRgb(h, s, v);
+  return hsvToRgb(h, s, v);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+// rgb min and max values determined by looking at
+// ParaviewColorBar_CEIlabBlue2Red.png.
+//
+////////////////////////////////////////////////////////////////////////////////
+var getCEIBlueRedRGBFromLinearValue = function(min, max, val) {
+  var i = val - min;
+  var width = max - min;
+  var mid = width / 2;
+  var j = val - mid;
+
+  var rMin = 18;
+  var rMid = 148;
+  var rMax = 196;
+  var gMin = 153;
+  var gMid = 137;
+  var gMax = 119;
+  var bMin = 190;
+  var bMid = 138;
+  var bMax = 87;
+
+  if (val < mid) {
+    var r = rMin + (rMid - rMin) * i / mid;
+    var g = gMin + (gMid - gMin) * i / mid;
+    var b = bMin + (bMid - bMin) * i / mid;
+  } else {
+    var r = rMid + (rMax - rMid) * j / mid; + 1
+    var g = gMid + (gMax - gMid) * j / mid -1;
+    var b = bMid + (bMax - bMid) * j / mid -1;
+  }
+
+  return [r, g, b];
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1151,7 +1204,8 @@ var getHeatedBodyRGBFromLinearValue = function(min, max, val) {
 var buildGetRGBFromLinearValueArray = function() {
   ShipDataSet.getRGBFromLinearValue = [ getRainbowRGBFromLinearValue,
                                         getGrayscaleRGBFromLinearValue,
-                                        getHeatedBodyRGBFromLinearValue ];
+                                        getHeatedBodyRGBFromLinearValue,
+                                        getCEIBlueRedRGBFromLinearValue ];
 }
 
 ////////////////////////////////////////////////////////////////////////////////

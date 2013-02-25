@@ -128,7 +128,5 @@ ShipDataSet.satDataColorMapIx = 1;  // "Grayscale";
 ShipDataSet.dataColorMapIx = { "shipIx": 0,
                                "satIx": 1
                              };
-ShipDataSet.drawColorMap;           // array of functions
 ShipDataSet.getRGBFromLinearValue;  // array of functions
-
-ShipDataSet.developmentVersion = 211;
+ShipDataSet.developmentVersion = 215;
