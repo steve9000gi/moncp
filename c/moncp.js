@@ -788,37 +788,28 @@ var getGrayscaleRGBFromLinearValue = function(min, max, val) {
 var getHeatedBody2RGBFromLinearValue = function(min, max, val) {
   var i = val - min;
   var width = max - min;
-  var h;
-  var s = 1.0;
-  var v;
 
-  h = i / (width * 6.0);
-  //s = (max - val) / width;
-  v = i / width;
-
-/**/
   if (i < width / 2) {
-    h = 0.0;
-    v = (2.0 * i) / width;
+    var h = 0.0;
+    var v = (2.0 * i) / width;
   } else {
-    h = 2.0 * (i - (width / 2.0)) / (width * 6.0);
-    v = 1.0;
+    var h = 2.0 * (i - (width / 2.0)) / (width * 6.0);
+    var v = 1.0;
   }
 
-/**/
   var desatThreshold = 5.0 * width / 6.0; // desaturation threshold
 
-  if (i > desatThreshold) {
-    s = 1.0 - (val - desatThreshold ) / (width - desatThreshold);
-  }
+    var s = (i > desatThreshold) ?
+        1.0 - (val - desatThreshold ) / (width - desatThreshold) : 1.0;
 
   return hsvToRgb(h, s, v);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Heated body variant that resembles David Borland's version in "Rainboe Color
-// Map (Still) Considered Harmful." Not much red,
+// Heated body variant that resembles David Borland's version in "Rainbow Color
+// Map (Still) Considered Harmful." Not much red, but no discontinuities visible
+// to me.
 // 
 // Assumption: min <= val <= max
 //
@@ -826,24 +817,10 @@ var getHeatedBody2RGBFromLinearValue = function(min, max, val) {
 var getHeatedBodyRGBFromLinearValue = function(min, max, val) {
   var i = val - min;
   var width = max - min;
-  var h;
+  var h = i / (width * 6.0);;
   var s = 1.0;
-  var v;
+  var v = i / width;
 
-  h = i / (width * 6.0);
-  //s = (max - val) / width;
-  v = i / width;
-
-/*
-  if (i < width / 2) {
-    h = 0.0;
-    v = (2.0 * i) / width;
-  } else {
-    h = 2.0 * (i - (width / 2.0)) / (width * 6.0);
-    v = 1.0;
-  }
-
-*/
   var desatThreshold = 5.0 * width / 6.0; // desaturation threshold
 
   if (i > desatThreshold) {
@@ -1115,8 +1092,6 @@ var addHeatedBodyToOverlay = function() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-
-////////////////////////////////////////////////////////////////////////////////
 //
 ////////////////////////////////////////////////////////////////////////////////
 var addHeatedBody2ToOverlay = function() {
@@ -1208,7 +1183,6 @@ var showColorMapSelectionOverlay = function(e) {
 //
 ////////////////////////////////////////////////////////////////////////////////
 var hideColorMapSelectionOverlay = function(e) {
-//  $("body").css({"position": "relative"});
   $("#overlay")[0].style.display = "none";
 
   if (ShipDataSet.dataSourceIx == 0) {
