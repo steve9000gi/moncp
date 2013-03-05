@@ -19,7 +19,7 @@ $(document).ready(function() {
   addOuterElements();
   addReturnText();
   //addLoginControls();
-  buildGetRGBFromLinearValueArray();
+  buildColorMapArrays();
   addColorMaps();
   addColorMapSelectionOverlay();
   addTimelineSliderTable();
@@ -55,6 +55,7 @@ var setupEventHandlers = function() {
   $("#selectRainbowRow").on("click", onSelectRainbowRow);
   $("#selectGrayscaleRow").on("click", onSelectGrayscaleRow);
   $("#selectHeatedBodyRow").on("click", onSelectHeatedBodyRow);
+  $("#selectHeatedBody2Row").on("click", onSelectHeatedBody2Row);
   $("#selectCIEBlueRedRow").on("click", onSelectCIEBlueRedRow);
   $("#mapSzCtrl").on("change", onSelectMapSize);
   $("#hideButton").on("click", hideColorMapSelectionOverlay);
@@ -778,6 +779,47 @@ var getGrayscaleRGBFromLinearValue = function(min, max, val) {
 
 ////////////////////////////////////////////////////////////////////////////////
 //
+// Heated body variant with a much more pronounced red area. There is a 
+// discontinuity at the midpoint.
+//
+// Assumption: min <= val <= max
+//
+////////////////////////////////////////////////////////////////////////////////
+var getHeatedBody2RGBFromLinearValue = function(min, max, val) {
+  var i = val - min;
+  var width = max - min;
+  var h;
+  var s = 1.0;
+  var v;
+
+  h = i / (width * 6.0);
+  //s = (max - val) / width;
+  v = i / width;
+
+/**/
+  if (i < width / 2) {
+    h = 0.0;
+    v = (2.0 * i) / width;
+  } else {
+    h = 2.0 * (i - (width / 2.0)) / (width * 6.0);
+    v = 1.0;
+  }
+
+/**/
+  var desatThreshold = 5.0 * width / 6.0; // desaturation threshold
+
+  if (i > desatThreshold) {
+    s = 1.0 - (val - desatThreshold ) / (width - desatThreshold);
+  }
+
+  return hsvToRgb(h, s, v);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+// Heated body variant that resembles David Borland's version in "Rainboe Color
+// Map (Still) Considered Harmful." Not much red,
+// 
 // Assumption: min <= val <= max
 //
 ////////////////////////////////////////////////////////////////////////////////
@@ -788,6 +830,11 @@ var getHeatedBodyRGBFromLinearValue = function(min, max, val) {
   var s = 1.0;
   var v;
 
+  h = i / (width * 6.0);
+  //s = (max - val) / width;
+  v = i / width;
+
+/*
   if (i < width / 2) {
     h = 0.0;
     v = (2.0 * i) / width;
@@ -796,6 +843,7 @@ var getHeatedBodyRGBFromLinearValue = function(min, max, val) {
     v = 1.0;
   }
 
+*/
   var desatThreshold = 5.0 * width / 6.0; // desaturation threshold
 
   if (i > desatThreshold) {
@@ -808,10 +856,10 @@ var getHeatedBodyRGBFromLinearValue = function(min, max, val) {
 ////////////////////////////////////////////////////////////////////////////////
 //
 // rgb min and max values determined by looking at
-// ParaviewColorBar_CEIlabBlue2Red.png.
+// ParaviewColorBar_CIElabBlue2Red.png.
 //
 ////////////////////////////////////////////////////////////////////////////////
-var getCEIBlueRedRGBFromLinearValue = function(min, max, val) {
+var getCIEBlueRedRGBFromLinearValue = function(min, max, val) {
   var i = val - min;
   var width = max - min;
   var mid = width / 2;
@@ -843,11 +891,18 @@ var getCEIBlueRedRGBFromLinearValue = function(min, max, val) {
 ////////////////////////////////////////////////////////////////////////////////
 //
 ////////////////////////////////////////////////////////////////////////////////
-var buildGetRGBFromLinearValueArray = function() {
+var buildColorMapArrays = function() {
   ShipDataSet.getRGBFromLinearValue = [ getRainbowRGBFromLinearValue,
                                         getGrayscaleRGBFromLinearValue,
                                         getHeatedBodyRGBFromLinearValue,
-                                        getCEIBlueRedRGBFromLinearValue ];
+                                        getHeatedBody2RGBFromLinearValue,
+                                        getCIEBlueRedRGBFromLinearValue ];
+  ShipDataSet.colorMapSelector = [ "#selectRainbowColorMap",
+                                   "#selectGrayscaleColorMap",
+                                   "#selectHeatedBodyColorMap",
+                                   "#selectHeatedBody2ColorMap",
+                                   "#selectCIEBlueRedColorMap" ];
+  ShipDataSet.colorMapPSelector = [ "#p0", "#p1", "#p2", "#p3", "#p4" ];
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -970,11 +1025,26 @@ var onSelectHeatedBodyRow = function(e) {
 ////////////////////////////////////////////////////////////////////////////////
 //
 ////////////////////////////////////////////////////////////////////////////////
-var onSelectCIEBlueRedRow = function(e) {
+var onSelectHeatedBody2Row = function(e) {
   if (ShipDataSet.dataSourceIx == 0) {
     ShipDataSet.shipDataColorMapIx = 3;
   } else if (ShipDataSet.dataSourceIx == 1) {
     ShipDataSet.satDataColorMapIx = 3;
+  } else {
+    alert("onSelectHeatedBody2Row: unknown data source");
+  }
+  
+  highlightColorMapByDataSource(ShipDataSet.dataSourceIx);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+//
+////////////////////////////////////////////////////////////////////////////////
+var onSelectCIEBlueRedRow = function(e) {
+  if (ShipDataSet.dataSourceIx == 0) {
+    ShipDataSet.shipDataColorMapIx = 4;
+  } else if (ShipDataSet.dataSourceIx == 1) {
+    ShipDataSet.satDataColorMapIx = 4;
   } else {
     alert("onSelectCIEBlueRedRow: unknown data source");
   }
@@ -996,6 +1066,7 @@ var addColorMapSelectionOverlay = function() {
   addRainbowToOverlay();
   addGrayscaleToOverlay();
   addHeatedBodyToOverlay();
+  addHeatedBody2ToOverlay();
   addCIEBlueRedToOverlay();
   $("#overlay").append("<input type = 'button' value = 'Done' onclick = "
       + "'hideColorMapSelectionOverlay' id = 'hideButton'>");
@@ -1034,7 +1105,7 @@ var addGrayscaleToOverlay = function() {
 ////////////////////////////////////////////////////////////////////////////////
 var addHeatedBodyToOverlay = function() {
   $("#colorMapSelectTable").append("<tr id = 'selectHeatedBodyRow'></tr>");
-  $("#selectHeatedBodyRow").append("<td><p id = 'p2'>Black body:</p></td>");
+  $("#selectHeatedBodyRow").append("<td><p id = 'p2'>Black body 1:</p></td>");
   $("#selectHeatedBodyRow").append("<td id = 'heatedBodyElt'></td>");
   $("#heatedBodyElt").append("<canvas id = 'selectHeatedBodyColorMap' class = "
       + "'clrMap clrMapSelect' width = '95' height = '19' title = "
@@ -1044,23 +1115,55 @@ var addHeatedBodyToOverlay = function() {
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+
+////////////////////////////////////////////////////////////////////////////////
+//
+////////////////////////////////////////////////////////////////////////////////
+var addHeatedBody2ToOverlay = function() {
+  $("#colorMapSelectTable").append("<tr id = 'selectHeatedBody2Row'></tr>");
+  $("#selectHeatedBody2Row").append("<td><p id = 'p3'>Black body 2:</p></td>");
+  $("#selectHeatedBody2Row").append("<td id = 'heatedBody2Elt'></td>");
+  $("#heatedBody2Elt").append("<canvas id = 'selectHeatedBody2ColorMap' class = "
+      + "'clrMap clrMapSelect' width = '95' height = '19' title = "
+      + "'Click to select'></canvas>");
+  drawColorMap ("#selectHeatedBody2ColorMap", 3);
+  $("#selectHeatedBody2Row").append("<td></td>");
+}
+
+////////////////////////////////////////////////////////////////////////////////
 //
 ////////////////////////////////////////////////////////////////////////////////
 var addCIEBlueRedToOverlay = function() {
   $("#colorMapSelectTable").append("<tr id = 'selectCIEBlueRedRow'></tr>");
-  $("#selectCIEBlueRedRow").append("<td><p id = 'p3'>Blue-red:</p></td>");
+  $("#selectCIEBlueRedRow").append("<td><p id = 'p4'>Blue-red:</p></td>");
   $("#selectCIEBlueRedRow").append("<td id = 'CIEBlueRedElt'></td>");
   $("#CIEBlueRedElt").append("<canvas id = 'selectCIEBlueRedColorMap' class = "
       + "'clrMap clrMapSelect' width = '95' height = '19' title = "
       + "'Click to select'></canvas>");
-  drawColorMap ("#selectCIEBlueRedColorMap", 3);
+  drawColorMap ("#selectCIEBlueRedColorMap", 4);
   $("#selectCIEBlueRedRow").append("<td></td>");
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 //
 ////////////////////////////////////////////////////////////////////////////////
-var highlightColorMapByIndex = function(colorMapIx) {
+var highlightColorMapByIndex = function(colorMapIndex) {
+  for (var i = 0; i < ShipDataSet.colorMapSelector.length; i++) {
+    if (i == colorMapIndex) {
+      $(ShipDataSet.colorMapSelector[i]).css({"border-width": "3px",
+          "margin": "0px"});
+      $(ShipDataSet.colorMapPSelector[i]).css({"font-weight": "bold",
+          "text-shadow": "2px 2px #ffffff"});
+    } else {
+      $(ShipDataSet.colorMapSelector[i]).css({"border-width": "1px",
+          "margin": "2px"});
+      $(ShipDataSet.colorMapPSelector[i]).css({"font-weight": "normal",
+          "text-shadow": "none"});
+    }
+  }
+}
+/*
+
   switch (colorMapIx) {
     case 0:
       $("#selectRainbowColorMap").css(   {"border-width": "3px",
@@ -1068,6 +1171,8 @@ var highlightColorMapByIndex = function(colorMapIx) {
       $("#selectGrayscaleColorMap").css( {"border-width": "1px",
                                           "margin": "2px"});
       $("#selectHeatedBodyColorMap").css({"border-width": "1px",
+                                          "margin": "2px"});
+      $("#selectHeatedBody2ColorMap").css({"border-width": "1px",
                                           "margin": "2px"});
       $("#selectCIEBlueRedColorMap").css({"border-width": "1px",
                                           "margin": "2px"});
@@ -1079,6 +1184,8 @@ var highlightColorMapByIndex = function(colorMapIx) {
                     "text-shadow": "none"});
       $("#p3").css({"font-weight": "normal",
                     "text-shadow": "none"});
+      $("#p4").css({"font-weight": "normal",
+                    "text-shadow": "none"});
       break;
     case 1:
       $("#selectRainbowColorMap").css(   {"border-width": "1px",
@@ -1086,6 +1193,8 @@ var highlightColorMapByIndex = function(colorMapIx) {
       $("#selectGrayscaleColorMap").css( {"border-width": "3px",
                                           "margin": "0px"});
       $("#selectHeatedBodyColorMap").css({"border-width": "1px",
+                                          "margin": "2px"});
+      $("#selectHeatedBody2ColorMap").css({"border-width": "1px",
                                           "margin": "2px"});
       $("#selectCIEBlueRedColorMap").css({"border-width": "1px",
                                           "margin": "2px"});
@@ -1097,6 +1206,8 @@ var highlightColorMapByIndex = function(colorMapIx) {
                     "text-shadow": "none"});
       $("#p3").css({"font-weight": "normal",
                     "text-shadow": "none"});
+      $("#p4").css({"font-weight": "normal",
+                    "text-shadow": "none"});
       break;
     case 2:
       $("#selectRainbowColorMap").css(   {"border-width": "1px",
@@ -1105,6 +1216,8 @@ var highlightColorMapByIndex = function(colorMapIx) {
                                           "margin": "2px"});
       $("#selectHeatedBodyColorMap").css({"border-width": "3px",
                                           "margin": "0px"});
+      $("#selectHeatedBody2ColorMap").css({"border-width": "1px",
+                                          "margin": "2px"});
       $("#selectCIEBlueRedColorMap").css({"border-width": "1px",
                                           "margin": "2px"});
       $("#p0").css({"font-weight": "normal",
@@ -1115,11 +1228,37 @@ var highlightColorMapByIndex = function(colorMapIx) {
                     "text-shadow": "2px 2px #ffffff"});
       $("#p3").css({"font-weight": "normal",
                     "text-shadow": "none"});
+      $("#p4").css({"font-weight": "normal",
+                    "text-shadow": "none"});
       break;
     case 3:
       $("#selectRainbowColorMap").css(   {"border-width": "1px",
                                           "margin": "2px"});
       $("#selectGrayscaleColorMap").css( {"border-width": "1px",
+                                          "margin": "2px"});
+      $("#selectHeatedBodyColorMap").css({"border-width": "1px",
+                                          "margin": "2px"});
+      $("#selectHeatedBody2ColorMap").css({"border-width": "3px",
+                                          "margin": "0px"});
+      $("#selectCIEBlueRedColorMap").css({"border-width": "1px",
+                                          "margin": "2px"});
+      $("#p0").css({"font-weight": "normal",
+                    "text-shadow": "none"});
+      $("#p1").css({"font-weight": "normal",
+                    "text-shadow": "none"});
+      $("#p2").css({"font-weight": "normal",
+                    "text-shadow": "none"});
+      $("#p3").css({"font-weight": "bold",
+                    "text-shadow": "2px 2px #ffffff"});
+      $("#p4").css({"font-weight": "normal",
+                    "text-shadow": "none"});
+      break;
+    case 4:
+      $("#selectRainbowColorMap").css(   {"border-width": "1px",
+                                          "margin": "2px"});
+      $("#selectGrayscaleColorMap").css( {"border-width": "1px",
+                                          "margin": "2px"});
+      $("#selectHeatedBodyColorMap").css({"border-width": "1px",
                                           "margin": "2px"});
       $("#selectHeatedBodyColorMap").css({"border-width": "1px",
                                           "margin": "2px"});
@@ -1131,13 +1270,16 @@ var highlightColorMapByIndex = function(colorMapIx) {
                     "text-shadow": "none"});
       $("#p2").css({"font-weight": "normal",
                     "text-shadow": "none"});
-      $("#p3").css({"font-weight": "bold",
+      $("#p3").css({"font-weight": "normal",
+                    "text-shadow": "none"});
+      $("#p4").css({"font-weight": "bold",
                     "text-shadow": "2px 2px #ffffff"});
       break;
     default:
       alert("highlightColorMapByIndex: invalid index");
   }
 }
+*/
 
 ////////////////////////////////////////////////////////////////////////////////
 //
