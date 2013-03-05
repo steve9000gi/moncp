@@ -86,8 +86,8 @@ body {
 }
 
 #selectRainbowRow > td {
-  width:98px; 
-  /*width:105px;*/
+/*`  width:98px;  */
+  width:110px;
 }
 
 #overlay {
@@ -95,8 +95,8 @@ body {
   position: relative;
   top: -700px;
   left: 500px;
-  width: 315px;
-  height: 233px;
+  width: 330px;
+  height: 253px;
   z-index:  1000000;
   text-align: center;
 }
@@ -112,7 +112,7 @@ body {
 }
 
 #overlay td {
-  width: 105px;
+  width: 110px;
 }
 
 #hideButton {
