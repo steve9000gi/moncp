@@ -9,7 +9,7 @@
 // A ShipDataSet contains 1D arrays of multiple measured variables, ordered
 // by time of acquisition (year).
 //
-//  See www.renci.org/~stevec/Cassar/moncp.html for intended application.
+// Author: Steve Chall, Renaissance Computing Institute:  stevec@renci.org
 //
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -129,4 +129,6 @@ ShipDataSet.dataColorMapIx = { "shipIx": 0,
                                "satIx": 1
                              };
 ShipDataSet.getRGBFromLinearValue;  // array of functions
-ShipDataSet.developmentVersion = 215;
+ShipDataSet.colorMapSelector;  // array of selector strings for color maps
+ShipDataSet.colorMapPSelector; // array of selector strings for color map labels
+ShipDataSet.developmentVersion = 220;
