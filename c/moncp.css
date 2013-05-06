@@ -95,7 +95,7 @@ body {
   position: relative;
   top: -700px;
   left: 500px;
-  width: 330px;
+  width: 350px;
   height: 253px;
   z-index:  1000000;
   text-align: center;
@@ -143,7 +143,7 @@ body {
   color: #02020a; 
 }
 
-#registerLoginGroup, #returnTextGroup, #selectVariablesGroup, #timelineGroup,
+#registerLoginGroup, #returnTextGroup, #selectVariablesGroup, /*#timelineGroup,*/
     #validCSSGroup, #bottomLeftTable, #returnText, #returnStatus  {
 /*  Hack: If #timelineGroup is removed from the line above,
  *  both #topControls and #bottomControls become misaligned.
@@ -160,6 +160,14 @@ body {
   display: block;
   margin-left: auto;
   margin-right: auto;
+  float: right;
+}
+
+th {
+  font-weight: normal;
+}
+
+.rowHeader {
   float: right;
 }
 
@@ -221,7 +229,9 @@ input {
   width: 250px;
 }
 
-.boxSpan {
+.colorMapFS, .boxSpan  {
+/*  height: 10px; */
+  border: none;
   position: relative;
   margin-left: auto;
   margin-right: auto;
@@ -230,8 +240,8 @@ input {
 
 /* Keep widgets on the same row as associated text labels */
 .boxSpan > *, #mapSzP {
-  display:inline-block;
-  vertical-align:top;
+  display: inline-block;
+  vertical-align: top;
 }
 
 #mzctRow > * {
