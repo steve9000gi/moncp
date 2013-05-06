@@ -129,17 +129,22 @@ var addMap = function() {
   $("#mapGroupBox").append("<div class = 'centeredElt' id = 'liveMap'></div>");
 
   var plateCaree = new OpenLayers.Projection("EPSG:4326"); 
-  var sphericalMercator = new OpenLayers.Projection("EPSG:3857"); 
+  var sphericalMercator = new OpenLayers.Projection("EPSG:900913"); 
 
   var options = {
-      projection: plateCaree,
+      projection: sphericalMercator,
       displayProjection: plateCaree
   };
 
   ShipDataSet.map = new OpenLayers.Map("liveMap", options);
   ShipDataSet.map.addLayer(new OpenLayers.Layer.OSM());
-
+  ShipDataSet.map.addLayer(new OpenLayers.Layer.WMS('Bathymetry',
+      'http://asheville.renci.org:8080/geoserver/wms', { 
+          layers: ["world:global-bathymetry-2minute"],
+          isBaseLayer:false, transparent:true }));
   addShipDataPoints(ShipDataSet.map, plateCaree);
+  ShipDataSet.map.layers[1].setVisibility(
+      SatelliteDataSet.variableTypes[this.selectedIndex] == "Bathymetry");
 
   ShipDataSet.layerSwitcher = new OpenLayers.Control.LayerSwitcher();
   ShipDataSet.map.addControl(ShipDataSet.layerSwitcher);
@@ -235,14 +240,15 @@ function addShipDataPoints(map, projection) {
   select.activate();
   ShipDataSet.selectControl = select;
 
-  var bounds = shipDataPoints[0].geometry.bounds;
+  //var bounds = shipDataPoints[0].geometry.bounds;
 
 /*
   if (map.zoom) {
     map.zoomToExtent(bounds);
   } else {
 */
-    map.setCenter(bounds.getCenterLonLat());
+    //map.setCenter(bounds.getCenterLonLat()); // This zooms in on the data
+    map.setCenter(new OpenLayers.LonLat(0, 0), 1);
 /*
   }
 */
@@ -535,6 +541,7 @@ var onSelectShipDataVariable = function(e) {
     layer.redraw();
   }
 }
+
 ////////////////////////////////////////////////////////////////////////////////
 //
 // Event handler for Satellite Data dropdown: set the variable to be displayed
@@ -545,7 +552,11 @@ var onSelectSatelliteDataVariable = function(e) {
   SatelliteDataSet.numIx = this.selectedIndex;
   updateSatelliteColorMapInfo();
 
-  if (SatelliteDataSet.variableTypes[this.selectedIndex] != "None") {
+  ShipDataSet.map.layers[1].setVisibility(
+      SatelliteDataSet.variableTypes[this.selectedIndex] == "Bathymetry");
+
+  if (SatelliteDataSet.variableTypes[this.selectedIndex] == "Bathymetry") {
+  } else if (SatelliteDataSet.variableTypes[this.selectedIndex] != "None") {
     alert("Satellite data: not implemented for "
         + SatelliteDataSet.minVarTypes[this.selectedIndex] + ".");
   }
@@ -919,37 +930,55 @@ var addColorMaps = function() {
 
   $("#topRow").append("<td id = 'colorMapsElt'></td");
   $("#colorMapsElt").append("<fieldset class = 'groupBox' id = 'colorMapGroup'>"
-      + "<legend class = 'legendText'>Color Maps</legend>"
-      + "<span class = 'boxSpan' id = 'shipDataClrMapSpan'>Ship Data: "
-      + "<label for = 'shipColorMapMin' id = shipColorMapMinLabel>Min</label>"
-      + "<input type = 'number' class = 'numEntry' id = 'shipColorMapMin' "
-      + "title = " + inputTitle + " size = 3'>"
+      + "<legend class = 'legendText'>Color Maps</legend></fieldset>");
+    $("#colorMapGroup").append("<table id = 'colorMapTable'></table>");
+      $("#colorMapTable").append("<tbody id = 'colorMapTableBody'></tbody>");
 
-// begin Canvas ship data color map
-      + "<canvas id = 'shipDataColorMap' class = 'clrMap' width = '95' height ="
-      + "'19' title = 'Click to change ship data color map.'></canvas>"
-// end Canvas color map
+// Ship data color map:
+        $("#colorMapTableBody").append("<tr id = 'shipDataClrMapRow'></tr>");
+          $("#shipDataClrMapRow").append("<td id = 'shipDataClrMapStuff'>"
+              + "</td>");
+        
+            $("#shipDataClrMapStuff").append("<span class = 'boxSpan' "
+                + "id = 'shipDataClrMapSpan'>Ship Data: "
+                + "<label for = 'shipColorMapMin' id = shipColorMapMinLabel>"
+                + "Min</label><input type = 'number' class = 'numEntry' "
+                + "id = 'shipColorMapMin' title = " + inputTitle + " size = 3'>"
 
-      + "<input type = 'number' class = 'numEntry' id = 'shipColorMapMax' "
-      + "title = " + inputTitle + "size = 3>"
-      + "<label for = 'shipColorMapMax' id = shipColorMapMinLabel>Max</label>"
-      + "</span><br>"
-      + "<span class = 'boxSpan' id = 'satDataClrMapSpan'>Satellite Data: "
-      + "<label for = 'satColorMapMin' id = satColorMapMinLabel>Min</label>"
-      + "<input type = 'number' class = 'numEntry' id = 'satColorMapMin' "
-      + "title = 'not implemented' size = 3 disabled = 'disabled'>"
+                // begin Canvas ship data color map
+                + "<canvas id = 'shipDataColorMap' class = 'clrMap' "
+                + "width = '95' height = '19' "
+                + "title = 'Click to change ship data color map.'></canvas>"
+                // end Canvas color map
 
-// begin Canvas satellite data color map
-      + "<canvas id = 'satDataColorMap' class = 'clrMap' width = '95' height ="
-      + "'19' title = 'Click to change satellite data color map.'></canvas>"
-// end Canvas color map
+                + "<input type = 'number' class = 'numEntry' "
+                + "id = 'shipColorMapMax' title = " + inputTitle + "size = 3>"
+                + "<label for = 'shipColorMapMax' id = shipColorMapMaxLabel>Max"
+                + "</label></span><br>");
 
-      + "<input type = 'number' class = 'numEntry' id = 'satColorMapMax' "
-      + "title = 'not implemented' size = 3 disabled = 'disabled'>"
-      + "<label for = 'satColorMapMax' id = satColorMapMaxLabel>Max</label>"
-      + "</span>"
-      + "</fieldset>");
+// Satellite data color map:
+        $("#colorMapTableBody").append("<tr id = 'satDataClrMapRow'></tr>");
+          $("#satDataClrMapRow").append("<td id = 'satDataClrMapStuff'></td>");
+        
+            $("#satDataClrMapStuff").append("<span class = 'boxSpan' "
+                + "id = 'satDataClrMapSpan'>Satellite Data: "
+                + "<label for = 'satColorMapMin' id = satColorMapMinLabel>Min"
+                + "</label><input type = 'number' class = 'numEntry' "
+                + "id = 'satColorMapMin' title = 'not implemented' size = 3 "
+                + "disabled = 'disabled'>"
 
+                // begin Canvas satellite data color map
+                + "<canvas id = 'satDataColorMap' class = 'clrMap' "
+                + "width = '95' height =" + "'19' title = "
+                + "'Click to change satellite data color map.'></canvas>"
+                // end Canvas color map
+
+                + "<input type = 'number' class = 'numEntry' "
+                + "id = 'satColorMapMax' title = 'not implemented' size = 3 "
+                + "disabled = 'disabled'><label for = 'satColorMapMax' "
+                + "id = satColorMapMaxLabel>Max</label></span>");
+//                + "</fieldset>");
+        
   drawColorMap("#shipDataColorMap", ShipDataSet.shipDataColorMapIx);
   drawColorMap("#satDataColorMap", ShipDataSet.satDataColorMapIx);
 }
@@ -1306,6 +1335,7 @@ var onSelectEndYear = function(e, ui) {
 var onSelectStartMonth = function(e, ui) {
   ShipDataSet.startDay = setMaxDay(ShipDataSet.startYear,
       $(this).slider("value"), "#startDaySlider");
+  //alert($("#startMonthSlider")[0].offsetLeft);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1337,18 +1367,18 @@ var onSelectEndDay = function(e, ui) {
 var addTimelineSliderTable = function() {
   $("#timelineGroup").append("<table id = 'timeTable'></table>");
  
-    $("#timeTable").append("<thead><tr><th>Start</th><th>End</th><th></th></tr>"
-        + "</thead><tbody>");
+    $("#timeTable").append("<thead><tr><th></th><th>Start</th><th>End</th>"
+        + "<th id = 'buttonSlot'></th></tr></thead><tbody>");
 
     //Year:
     $("#timeTable").append("<tr id = 'yearRow'></tr>");
+      $("#yearRow").append("<th class = 'rowHeader'>Year:</th>");
 
       $("#yearRow").append("<td id = 'startYear'");
-        $("#startYear").append("<span class = 'boxSpan' id = 'startYearSpan'>");
-        $("#startYearSpan").append("<label for 'startYearSlider'>Year:"
-            + "</label><div class = 'slider' id = 'startYearSlider'></div>"
-            + "</span></td>");
+        $("#startYear").append( "<div class = 'slider' "
+            + "id = 'startYearSlider'></div></td>");
           $("#startYearSlider").slider( {
+              animate: true,
               min: ShipDataSet.minYear, 
               max: ShipDataSet.maxYear,
               step: 1,
@@ -1359,11 +1389,10 @@ var addTimelineSliderTable = function() {
           });
       
       $("#yearRow").append("<td id = 'endYear'");
-        $("#endYear").append("<span class = 'boxSpan' id = 'endYearSpan'>");
-        $("#endYearSpan").append("<label for 'endYearSlider'>Year:</label>"
-            + "<div class = 'slider' id = 'endYearSlider'></div>"
-            + "</span></td>");
+        $("#endYear").append("<div class = 'slider' id = 'endYearSlider'></div>"
+            + "</td>");
           $("#endYearSlider").slider( {
+              animate: true,
               min: ShipDataSet.minYear, 
               max: ShipDataSet.maxYear,
               step: 1,
@@ -1375,14 +1404,13 @@ var addTimelineSliderTable = function() {
 
     //Month:
     $("#timeTable").append("<tr id = 'monthRow'></tr>");
+      $("#monthRow").append("<th class = 'rowHeader'>Month:</th>");
 
-      $("#monthRow").append("<td id = 'startMonth'");
-        $("#startMonth").append("<span class = 'boxSpan' "
-            + "id = 'startMonthSpan'>");
-        $("#startMonthSpan").append("<label for 'startMonthSlider'>Month:"
-            + "</label><div class = 'slider' id = 'startMonthSlider'></div>"
-            + "</span></td>");
+      $("#monthRow").append("<td id = 'startMonth'</td>");
+        $("#startMonth").append(" <div class = 'slider' "
+              + "id = 'startMonthSlider'></div>");
           $("#startMonthSlider").slider( {
+              animate: true,
               min: ShipDataSet.minMonth, 
               max: ShipDataSet.maxMonth,
               step: 1,
@@ -1393,11 +1421,10 @@ var addTimelineSliderTable = function() {
           });
 
       $("#monthRow").append("<td id = 'endMonth'");
-        $("#endMonth").append("<span class = 'boxSpan' id = 'endMonthSpan'>");
-        $("#endMonthSpan").append("<label for 'endMonthSlider'>Month:"
-            + "</label><div class = 'slider' id = 'endMonthSlider'></div>"
-            + "</span></td>");
+        $("#endMonth").append("<div class = 'slider' "
+            + "id = 'endMonthSlider'></div></td>");
           $("#endMonthSlider").slider( {
+              animate: true,
               min: ShipDataSet.minMonth, 
               max: ShipDataSet.maxMonth,
               step: 1,
@@ -1408,18 +1435,19 @@ var addTimelineSliderTable = function() {
           });
 
       // Button:
-      $("#monthRow").append("<td><input id = 'getShipDataButton' "
+      $("#buttonSlot").append("<td><input id = 'getShipDataButton' "
+      //$("#yearRow").append("<td><input id = 'getShipDataButton' "
       + "type = 'button' value = 'Get Ship Data'></td>");
 
     //Day:
     $("#timeTable").append("<tr id = 'dayRow'></tr>");
+      $("#dayRow").append("<th class = 'rowHeader'>Day:</th>");
 
       $("#dayRow").append("<td id = 'startDay'");
-        $("#startDay").append("<span class = 'boxSpan' id = 'startDaySpan'>");
-        $("#startDaySpan").append("<label for 'startDaySlider'>Day:"
-            + "</label><div class = 'slider' id = 'startDaySlider'></div>"
-            + "</span></td>");
+        $("#startDay").append("<div class = 'slider' id = 'startDaySlider'>"
+            + "</div></td>");
           $("#startDaySlider").slider( {
+              animate: true,
               min: ShipDataSet.minDay, 
               max: ShipDataSet.maxDay,
               step: 1,
@@ -1430,11 +1458,10 @@ var addTimelineSliderTable = function() {
           });
       
       $("#dayRow").append("<td id = 'endDay'");
-        $("#endDay").append("<span class = 'boxSpan' id = 'endDaySpan'>");
-        $("#endDaySpan").append("<label for 'endDaySlider'>Day:</label>"
-            + "<div class = 'slider' id = 'endDaySlider'></div>"
-            + "</span></td>");
+        $("#endDay").append("<div class = 'slider' id = 'endDaySlider'></div>"
+            + "</td>");
           $("#endDaySlider").slider( {
+              animate: true,
               min: ShipDataSet.minDay, 
               max: ShipDataSet.maxDay,
               step: 1,
@@ -1587,7 +1614,6 @@ var addLoginControls = function() {
   $("#registerLoginGroup").append("<legend class = 'legendText'>Log in or "
       + "Register</legend>");
 }
-
 
 ////////////////////////////////////////////////////////////////////////////////
 //
