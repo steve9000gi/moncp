@@ -128,9 +128,9 @@ var displaySelectedShipData = function(shipData) {
       populate_ViewOrChangeShipData_inputFields();
     }
   } else {
-    if (ShipDataSet.map.layers.length > 1) {
+    if (ShipDataSet.map.layers.length > 2) {
       ShipDataSet.selectControl.destroy();
-      ShipDataSet.map.layers[1].destroy();
+      ShipDataSet.map.layers[2].destroy();
     }
 
     var plateCaree = new OpenLayers.Projection("EPSG:4326");
