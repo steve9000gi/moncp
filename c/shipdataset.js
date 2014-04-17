@@ -107,7 +107,9 @@ ShipDataSet.numIx = 0;
 ShipDataSet.minYear = 1997;
 ShipDataSet.maxYear = 2012;
 ShipDataSet.startYear = 2008;
+//ShipDataSet.startYear = 2000;
 ShipDataSet.endYear = 2008;
+//ShipDataSet.endYear = 2000;
 ShipDataSet.minMonth = 1;
 ShipDataSet.maxMonth = 12;
 ShipDataSet.startMonth = ShipDataSet.minMonth;
@@ -116,6 +118,7 @@ ShipDataSet.minDay = 1;
 ShipDataSet.maxDay = 31;
 ShipDataSet.startDay = ShipDataSet.minDay;
 ShipDataSet.endDay = 23;
+//ShipDataSet.endDay = 3;
 ShipDataSet.firstTime = true;
 ShipDataSet.map;
 ShipDataSet.selectedIndex = 0;
@@ -131,4 +134,4 @@ ShipDataSet.dataColorMapIx = { "shipIx": 0,
 ShipDataSet.getRGBFromLinearValue;  // array of functions
 ShipDataSet.colorMapSelector;  // array of selector strings for color maps
 ShipDataSet.colorMapPSelector; // array of selector strings for color map labels
-ShipDataSet.developmentVersion = 220;
+ShipDataSet.developmentVersion = 232;

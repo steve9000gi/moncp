@@ -178,9 +178,6 @@ function addShipDataPoints(map, projection) {
   computeMinMaxValues();
   updateShipDataColorMapInfo();
 
-  var lonSum = 0, latSum = 0, lonAvg = 0, latAvg = 0;
-  var l = 0, r = 0, t = 0, b = 0; 
-
   var shipDataPoints = new Array(ShipDataSet.all.length);
 
   for (var i = 0; i < ShipDataSet.all.length; i++) {
@@ -810,8 +807,8 @@ var getHeatedBody2RGBFromLinearValue = function(min, max, val) {
 
   var desatThreshold = 5.0 * width / 6.0; // desaturation threshold
 
-    var s = (i > desatThreshold) ?
-        1.0 - (val - desatThreshold ) / (width - desatThreshold) : 1.0;
+  var s = (i > desatThreshold) ?
+      1.0 - (val - desatThreshold) / (width - desatThreshold) : 1.0;
 
   return hsvToRgb(h, s, v);
 }
@@ -835,7 +832,7 @@ var getHeatedBodyRGBFromLinearValue = function(min, max, val) {
   var desatThreshold = 5.0 * width / 6.0; // desaturation threshold
 
   if (i > desatThreshold) {
-    s = 1.0 - (val - desatThreshold ) / (width - desatThreshold);
+    s = 1.0 - (val - desatThreshold) / (width - desatThreshold);
   }
 
   return hsvToRgb(h, s, v);
@@ -977,7 +974,6 @@ var addColorMaps = function() {
                 + "id = 'satColorMapMax' title = 'not implemented' size = 3 "
                 + "disabled = 'disabled'><label for = 'satColorMapMax' "
                 + "id = satColorMapMaxLabel>Max</label></span>");
-//                + "</fieldset>");
         
   drawColorMap("#shipDataColorMap", ShipDataSet.shipDataColorMapIx);
   drawColorMap("#satDataColorMap", ShipDataSet.satDataColorMapIx);
@@ -1192,19 +1188,21 @@ var highlightColorMapByDataSource = function(dataSourceIx) {
 // 
 ////////////////////////////////////////////////////////////////////////////////
 var showColorMapSelectionOverlay = function(e) {
-  $("#overlay")[0].style.display = "block";
-  //$("#overlay").modal({"overlayID": "overlay"});
-
   if (this.attributes["id"].value == "shipDataColorMap") {
     $("#clrMapSelect").text("Select Ship Data Color Map"); 
     ShipDataSet.dataSourceIx = 0;
   } else if (this.attributes["id"].value == "satDataColorMap") {
-    $("#clrMapSelect").text("Select Satellite Data Color Map"); 
-    ShipDataSet.dataSourceIx = 1;
+    alert("Color map selection not implemented for satellite data.");
+    return;
+    //$("#clrMapSelect").text("Select Satellite Data Color Map"); 
+    //ShipDataSet.dataSourceIx = 1;
   } else {
     alert("showColorMapSelectionOverlay: failed to identify color map");
+    return;
   }
 
+  $("#overlay")[0].style.display = "block";
+  //$("#overlay").modal({"overlayID": "overlay"});
   highlightColorMapByDataSource(ShipDataSet.dataSourceIx);
 }
 
@@ -1235,6 +1233,7 @@ var hideColorMapSelectionOverlay = function(e) {
 ////////////////////////////////////////////////////////////////////////////////
 var drawColorMap = function(selector, clrMapIx) {
   var canvas = $(selector)[0];
+
   if (canvas.getContext) {
     var context = canvas.getContext("2d");
     var width = 95;
@@ -1366,7 +1365,6 @@ var onSelectEndDay = function(e, ui) {
 ////////////////////////////////////////////////////////////////////////////////
 var addTimelineSliderTable = function() {
   $("#timelineGroup").append("<table id = 'timeTable'></table>");
- 
     $("#timeTable").append("<thead><tr><th></th><th>Start</th><th>End</th>"
         + "<th id = 'buttonSlot'></th></tr></thead><tbody>");
 

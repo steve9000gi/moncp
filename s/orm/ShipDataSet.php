@@ -9,7 +9,7 @@
 ////////////////////////////////////////////////////////////////////////////////
 
 ini_set('memory_limit', '-1');
-set_time_limit(120);
+set_time_limit(150);
 
 class ShipDataSet
 {
@@ -43,7 +43,8 @@ class ShipDataSet
   //
   //////////////////////////////////////////////////////////////////////////////
   private function getConnection() {
-    $conn = new mysqli("localhost", "<user>", "<password>", "moncp");
+    $conn = new mysqli("localhost", "stevec", "J0h43x$", "moncp");
+    //$conn = new mysqli("localhost", "<user>", "<password>", "moncp");
     //echo "$conn = " . $conn;
 
     if (mysqli_connect_errno($conn)) {
@@ -76,7 +77,7 @@ class ShipDataSet
        . $neto2 . "', '"
        . $rowdate . "')";
     $result = $mysqli->query($q);
-    var_dump($q);
+    // var_dump($q);
 
     if ($result) {
       $new_id = $mysqli->insert_id;
